@@ -55,6 +55,40 @@ class ApiClient {
     login: (body: any) => this.request<any>('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
     register: (body: any) => this.request<any>('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
     me: () => this.request<any>('/auth/me'),
+    verifyOnboarding: (token: string) =>
+      this.request<{ valid: boolean; user: any }>('/auth/onboarding/verify', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      }),
+    completeOnboarding: (token: string, password: string) =>
+      this.request<{ message: string }>('/auth/onboarding/complete', {
+        method: 'POST',
+        body: JSON.stringify({ token, password }),
+      }),
+    forgotPassword: (email: string) =>
+      this.request<{ message: string }>('/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      }),
+    resetPassword: (token: string, password: string) =>
+      this.request<{ message: string }>('/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ token, password }),
+      }),
+  };
+
+  // Admin Management
+  public admin = {
+    createUser: (data: {
+      email: string;
+      firstName: string;
+      lastName: string;
+      role: 'TUTOR' | 'INTERN';
+      departmentSlug: string;
+    }) => this.request<any>('/admin/users', { method: 'POST', body: JSON.stringify(data) }),
+    listUsers: () => this.request<{ users: any[] }>('/admin/users'),
+    resendInvitation: (userId: string) =>
+      this.request<any>(`/admin/users/${userId}/resend-invitation`, { method: 'POST' }),
   };
 
   // Departments

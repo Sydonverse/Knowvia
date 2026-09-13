@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import authRoutes from './routes/auth.routes';
+import adminRoutes from './routes/admin.routes';
 import departmentRoutes from './routes/department.routes';
 import notificationRoutes from './routes/notification.routes';
 import { initSocket } from './socket';
@@ -17,11 +18,19 @@ const server = http.createServer(app);
 
 const PORT = process.env.PORT || 4000;
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
+const APP_URL = process.env.APP_URL || 'http://localhost:5173';
 
 // Global Middleware
 app.use(
   cors({
-    origin: [CLIENT_URL, 'http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: [
+      CLIENT_URL,
+      APP_URL,
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+    ],
     credentials: true,
   })
 );
@@ -40,6 +49,7 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/departments', departmentRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 

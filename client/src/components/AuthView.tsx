@@ -1,29 +1,23 @@
 import React, { useState } from 'react';
-import { BookOpen, Sparkles, LogIn, UserPlus, ShieldCheck, GraduationCap } from 'lucide-react';
-import { Department } from '../types';
+import { BookOpen, Sparkles, LogIn, Lock, Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { api } from '../services/api';
 
 interface AuthViewProps {
   onLogin: (email: string, password?: string) => Promise<void>;
-  onRegister: (data: any) => Promise<void>;
-  availableDepartments: Department[];
 }
 
-export const AuthView: React.FC<AuthViewProps> = ({
-  onLogin,
-  onRegister,
-  availableDepartments,
-}) => {
-  const [isRegister, setIsRegister] = useState(false);
+export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('password123');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [role, setRole] = useState<'INTERN' | 'TUTOR'>('INTERN');
-  const [departmentSlug, setDepartmentSlug] = useState(
-    availableDepartments[0]?.slug || 'cybersecurity'
-  );
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Forgot Password State
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState('');
+  const [forgotError, setForgotError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,24 +25,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
     setLoading(true);
 
     try {
-      if (isRegister) {
-        if (!departmentSlug) {
-          setErrorMsg('Please select your department during registration.');
-          setLoading(false);
-          return;
-        }
-
-        await onRegister({
-          email,
-          password,
-          firstName,
-          lastName,
-          role,
-          departmentSlug,
-        });
-      } else {
-        await onLogin(email, password);
-      }
+      await onLogin(email, password);
     } catch (err: any) {
       setErrorMsg(err.message || 'Authentication failed');
     } finally {
@@ -68,6 +45,25 @@ export const AuthView: React.FC<AuthViewProps> = ({
     }
   };
 
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError('');
+    setForgotSuccess('');
+    setForgotLoading(true);
+
+    try {
+      const res = await api.auth.forgotPassword(forgotEmail.trim());
+      setForgotSuccess(
+        res.message ||
+          'If an account exists with this email address, a password reset link has been dispatched.'
+      );
+    } catch (err: any) {
+      setForgotError(err.message || 'Failed to request password reset.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   return (
     <div className="auth-page-container">
       <div className="auth-card">
@@ -82,206 +78,251 @@ export const AuthView: React.FC<AuthViewProps> = ({
           </p>
         </div>
 
-        {/* Quick Demo Personas Box */}
-        <div className="quick-demo-section">
-          <div className="quick-demo-header">
-            <Sparkles size={14} color="#4f46e5" />
-            <span>Quick-Login Demo Accounts:</span>
-          </div>
-          <div className="demo-pills-container">
-            <button
-              type="button"
-              className="demo-pill-btn"
-              onClick={() => handleQuickLogin('david.cyber@knowvia.internal')}
-            >
-              <span className="demo-pill-dot intern-dot"></span>
-              <span>David (Student)</span>
-            </button>
+        {isForgotPassword ? (
+          /* ─── FORGOT PASSWORD VIEW ───────────────────────── */
+          <div>
+            <div style={{ marginBottom: '18px' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  setForgotError('');
+                  setForgotSuccess('');
+                }}
+              >
+                <ArrowLeft size={14} />
+                <span>Back to Sign In</span>
+              </button>
+            </div>
 
-            <button
-              type="button"
-              className="demo-pill-btn"
-              onClick={() => handleQuickLogin('cyber.tutor@knowvia.internal')}
-            >
-              <span className="demo-pill-dot tutor-dot"></span>
-              <span>Alex (Tutor)</span>
-            </button>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+              Reset Your Password
+            </h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '18px' }}>
+              Enter your registered email address and we will send you a secure link to reset your password.
+            </p>
 
-            <button
-              type="button"
-              className="demo-pill-btn"
-              onClick={() => handleQuickLogin('admin@knowvia.internal')}
-            >
-              <span className="demo-pill-dot admin-dot"></span>
-              <span>Sarah (Admin)</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="auth-tabs">
-          <button
-            type="button"
-            className={`auth-tab-btn ${!isRegister ? 'active' : ''}`}
-            onClick={() => {
-              setIsRegister(false);
-              setErrorMsg('');
-            }}
-          >
-            <LogIn size={16} />
-            <span>Sign In</span>
-          </button>
-          <button
-            type="button"
-            className={`auth-tab-btn ${isRegister ? 'active' : ''}`}
-            onClick={() => {
-              setIsRegister(true);
-              setErrorMsg('');
-            }}
-          >
-            <UserPlus size={16} />
-            <span>Register Account</span>
-          </button>
-        </div>
-
-        {errorMsg && <div className="auth-error-banner">{errorMsg}</div>}
-
-        <form onSubmit={handleSubmit} className="auth-form">
-          {isRegister && (
-            <>
-              <div className="form-grid-2">
-                <div className="form-field">
-                  <label className="field-label">First Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Jane"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="input-clean"
-                  />
-                </div>
-                <div className="form-field">
-                  <label className="field-label">Last Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Doe"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="input-clean"
-                  />
-                </div>
+            {forgotError && <div className="auth-error-banner">{forgotError}</div>}
+            {forgotSuccess && (
+              <div
+                style={{
+                  background: 'var(--success-light)',
+                  border: '1px solid var(--success-border)',
+                  color: '#15803d',
+                  padding: '12px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '13px',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '8px',
+                }}
+              >
+                <CheckCircle2 size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <span>{forgotSuccess}</span>
               </div>
+            )}
 
-              <div className="form-field">
-                <label className="field-label">Department Enrollment *</label>
-                <select
-                  value={departmentSlug}
-                  onChange={(e) => setDepartmentSlug(e.target.value)}
-                  className="input-clean"
-                  required
+            {!forgotSuccess ? (
+              <form onSubmit={handleForgotPasswordSubmit} className="auth-form">
+                <div className="form-field">
+                  <label className="field-label">Email Address *</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@organization.com"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      className="input-clean"
+                      style={{ paddingLeft: '36px' }}
+                    />
+                    <Mail
+                      size={16}
+                      style={{
+                        position: 'absolute',
+                        left: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'var(--text-faint)',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn-primary btn-full mt-3"
+                  disabled={forgotLoading || !forgotEmail.trim()}
                 >
-                  {availableDepartments.length > 0 ? (
-                    availableDepartments.map((dept) => (
-                      <option key={dept.slug} value={dept.slug}>
-                        {dept.name}
-                      </option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="cybersecurity">Cybersecurity</option>
-                      <option value="web-dev">Web Development</option>
-                      <option value="data-analysis">Data Analysis</option>
-                      <option value="3d-modelling">3D Modelling</option>
-                      <option value="graphic-design">Graphic Design</option>
-                    </>
-                  )}
-                </select>
-                <span className="field-help-text">
-                  You will be enrolled into this department workspace upon registration.
-                </span>
+                  {forgotLoading ? 'Sending Reset Instructions...' : 'Send Password Reset Link'}
+                </button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                className="btn-primary btn-full mt-3"
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  setForgotSuccess('');
+                }}
+              >
+                Return to Sign In
+              </button>
+            )}
+          </div>
+        ) : (
+          /* ─── NORMAL SIGN IN VIEW ────────────────────────── */
+          <>
+            {/* Quick Demo Personas Box */}
+            <div className="quick-demo-section">
+              <div className="quick-demo-header">
+                <Sparkles size={14} color="#4f46e5" />
+                <span>Quick-Login Demo Accounts:</span>
+              </div>
+              <div className="demo-pills-container">
+                <button
+                  type="button"
+                  className="demo-pill-btn"
+                  onClick={() => handleQuickLogin('david.cyber@knowvia.internal')}
+                >
+                  <span className="demo-pill-dot intern-dot"></span>
+                  <span>David (Student)</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="demo-pill-btn"
+                  onClick={() => handleQuickLogin('cyber.tutor@knowvia.internal')}
+                >
+                  <span className="demo-pill-dot tutor-dot"></span>
+                  <span>Alex (Tutor)</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="demo-pill-btn"
+                  onClick={() => handleQuickLogin('admin@knowvia.internal')}
+                >
+                  <span className="demo-pill-dot admin-dot"></span>
+                  <span>Sarah (Admin)</span>
+                </button>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '16px', textAlign: 'center' }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: 'var(--text-secondary)',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                }}
+              >
+                <LogIn size={16} color="var(--primary)" />
+                <span>Sign In with Your Credentials</span>
+              </div>
+            </div>
+
+            {errorMsg && <div className="auth-error-banner">{errorMsg}</div>}
+
+            <form onSubmit={handleSubmit} className="auth-form">
+              <div className="form-field">
+                <label className="field-label">Email Address *</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="email"
+                    required
+                    placeholder="name@knowvia.internal"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input-clean"
+                    style={{ paddingLeft: '36px' }}
+                  />
+                  <Mail
+                    size={16}
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: 'var(--text-faint)',
+                    }}
+                  />
+                </div>
               </div>
 
               <div className="form-field">
-                <label className="field-label">Role on Platform</label>
-                <div className="role-selector-cards">
-                  <label
-                    className={`role-select-card ${role === 'INTERN' ? 'selected' : ''}`}
-                    onClick={() => setRole('INTERN')}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="field-label">Password *</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsForgotPassword(true);
+                      setForgotEmail(email);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--primary)',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
                   >
-                    <input
-                      type="radio"
-                      name="role"
-                      value="INTERN"
-                      checked={role === 'INTERN'}
-                      onChange={() => setRole('INTERN')}
-                    />
-                    <GraduationCap size={18} color="#10b981" />
-                    <div>
-                      <strong>Intern / Student</strong>
-                      <div className="role-card-desc">Access timetable, materials & submit work</div>
-                    </div>
-                  </label>
-
-                  <label
-                    className={`role-select-card ${role === 'TUTOR' ? 'selected' : ''}`}
-                    onClick={() => setRole('TUTOR')}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value="TUTOR"
-                      checked={role === 'TUTOR'}
-                      onChange={() => setRole('TUTOR')}
-                    />
-                    <ShieldCheck size={18} color="#4f46e5" />
-                    <div>
-                      <strong>Department Tutor</strong>
-                      <div className="role-card-desc">Schedule classes, upload files & review assignments</div>
-                    </div>
-                  </label>
+                    Forgot Password?
+                  </button>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="input-clean"
+                    style={{ paddingLeft: '36px' }}
+                  />
+                  <Lock
+                    size={16}
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: 'var(--text-faint)',
+                    }}
+                  />
                 </div>
               </div>
-            </>
-          )}
 
-          <div className="form-field">
-            <label className="field-label">Email Address *</label>
-            <input
-              type="email"
-              required
-              placeholder="name@knowvia.internal"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input-clean"
-            />
-          </div>
+              <button type="submit" className="btn-primary btn-full mt-3" disabled={loading}>
+                {loading ? 'Authenticating...' : 'Sign In to Knowvia'}
+              </button>
+            </form>
 
-          <div className="form-field">
-            <label className="field-label">Password *</label>
-            <input
-              type="password"
-              required
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-clean"
-            />
-          </div>
-
-          <button type="submit" className="btn-primary btn-full mt-3" disabled={loading}>
-            {loading
-              ? 'Processing...'
-              : isRegister
-              ? 'Create Knowvia Account'
-              : 'Sign In to Knowvia'}
-          </button>
-        </form>
-
-        <div className="auth-footer-note">
-          <span>Protected with cryptographic password hashing, JWT authorization, and file validation.</span>
-        </div>
+            <div
+              style={{
+                marginTop: '20px',
+                padding: '12px',
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
+                fontSize: '11px',
+                color: 'var(--text-muted)',
+                lineHeight: 1.5,
+                textAlign: 'center',
+              }}
+            >
+              <strong>Notice:</strong> Account creation is controlled by Knowvia Administrators. If you are a new tutor or intern, an invitation link will be sent to your email to set up your password.
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

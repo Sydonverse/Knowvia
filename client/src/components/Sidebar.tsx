@@ -8,6 +8,7 @@ import {
   MessageSquare,
   ShieldCheck,
   GraduationCap,
+  Users,
 } from 'lucide-react';
 import { DepartmentMemberContext, User } from '../types';
 
@@ -17,7 +18,8 @@ export type ActiveTab =
   | 'materials'
   | 'assignments'
   | 'announcements'
-  | 'chat';
+  | 'chat'
+  | 'users';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -78,6 +80,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
     icon: MessageSquare,
     description: 'Real-time discussion',
   });
+
+  // Admin User & Onboarding Management tab
+  if (currentUser?.role === 'ADMIN') {
+    navItems.push({
+      id: 'users' as ActiveTab,
+      label: 'User Management',
+      icon: Users,
+      description: 'Onboard & manage users',
+    });
+  }
 
   const roleLabel =
     currentUser?.role === 'ADMIN'

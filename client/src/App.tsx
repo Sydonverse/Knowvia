@@ -28,6 +28,9 @@ import { AnnouncementsView } from './components/AnnouncementsView';
 import { ChatView } from './components/ChatView';
 import { NotificationDrawer } from './components/NotificationDrawer';
 import { AuthView } from './components/AuthView';
+import { OnboardingView } from './components/OnboardingView';
+import { ResetPasswordView } from './components/ResetPasswordView';
+import { AdminUsersView } from './components/AdminUsersView';
 
 import {
   UploadMaterialModal,
@@ -40,6 +43,17 @@ export const App: React.FC = () => {
   // Auth State
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
+
+  // URL Path Routing State
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
 
   // Department State
   const [availableDepartments, setAvailableDepartments] = useState<Department[]>([]);
@@ -481,6 +495,30 @@ export const App: React.FC = () => {
     socketService.disconnect();
   };
 
+  // Public Onboarding Route
+  if (currentPath.startsWith('/onboarding')) {
+    return (
+      <OnboardingView
+        onNavigateToLogin={() => {
+          window.history.pushState({}, '', '/');
+          setCurrentPath('/');
+        }}
+      />
+    );
+  }
+
+  // Public Reset Password Route
+  if (currentPath.startsWith('/reset-password')) {
+    return (
+      <ResetPasswordView
+        onNavigateToLogin={() => {
+          window.history.pushState({}, '', '/');
+          setCurrentPath('/');
+        }}
+      />
+    );
+  }
+
   // Loading Screen
   if (loadingUser) {
     return (
@@ -493,13 +531,7 @@ export const App: React.FC = () => {
 
   // Not Logged In -> Auth View
   if (!user) {
-    return (
-      <AuthView
-        onLogin={handleLogin}
-        onRegister={handleRegister}
-        availableDepartments={availableDepartments}
-      />
-    );
+    return <AuthView onLogin={handleLogin} />;
   }
 
   const isTutorOrAdmin = user.role === 'TUTOR' || user.role === 'ADMIN';
@@ -533,7 +565,9 @@ export const App: React.FC = () => {
 
         {/* Main Workspace Body */}
         <main className="main-content-viewport">
-          {activeDept ? (
+          {activeTab === 'users' && user.role === 'ADMIN' ? (
+            <AdminUsersView availableDepartments={availableDepartments} />
+          ) : activeDept ? (
             <>
               {activeTab === 'dashboard' && (
                 <DashboardView
