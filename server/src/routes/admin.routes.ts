@@ -5,6 +5,7 @@ import {
   createUser,
   listUsers,
   resendInvitation,
+  deleteUser,
 } from '../controllers/admin.controller';
 
 const router = Router();
@@ -16,5 +17,6 @@ router.use(requireRoles(['ADMIN']));
 router.post('/users', createUser);
 router.get('/users', listUsers);
 router.post('/users/:id/resend-invitation', resendInvitation);
+router.delete('/users/:id', deleteUser);
 
 export default router;

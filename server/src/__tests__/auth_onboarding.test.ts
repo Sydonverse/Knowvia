@@ -126,6 +126,12 @@ describe('Knowvia Admin-Controlled Account Creation & Onboarding Security', () =
       expect(tokenMatch).not.toBeNull();
       rawOnboardingToken = tokenMatch[1];
       expect(rawOnboardingToken.length).toBe(64); // 32 bytes hex
+
+      // Verify onboarding URL uses configured port 3000 and NOT 5173
+      expect(mailCall.html).toContain('http://localhost:3000/onboarding?token=');
+      expect(mailCall.text).toContain('http://localhost:3000/onboarding?token=');
+      expect(mailCall.html).not.toContain('localhost:5173');
+      expect(mailCall.text).not.toContain('localhost:5173');
     });
 
     it('verifies that no password and no raw token are stored in the database', async () => {
@@ -369,6 +375,118 @@ describe('Knowvia Admin-Controlled Account Creation & Onboarding Security', () =
         password: 'AnotherPasswordAttempt!',
       });
       expect(reuseRes.status).toBe(400);
+    });
+  });
+
+  // ─── 6. USER DELETION & REMOVAL FLOW ──────────────────────
+  describe('Admin User Removal Security Flow', () => {
+    let removableUserId: string;
+    let removableUserToken: string;
+
+    beforeAll(async () => {
+      // Create and onboard a dedicated user for removal tests
+      const removableEmail = 'test-onboarding-to-remove@knowvia.internal';
+      await request(app)
+        .post('/api/v1/admin/users')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          email: removableEmail,
+          firstName: 'Charlie',
+          lastName: 'Brown',
+          role: 'INTERN',
+          departmentSlug: 'cybersecurity',
+        });
+
+      const lastMail = sendMailMock.mock.calls[sendMailMock.mock.calls.length - 1][0];
+      const match = lastMail.text.match(/token=([a-f0-9]+)/);
+      const token = match[1];
+
+      await request(app).post('/api/v1/auth/onboarding/complete').send({
+        token,
+        password: 'CharliePassword123!',
+      });
+
+      const loginRes = await request(app).post('/api/v1/auth/login').send({
+        email: removableEmail,
+        password: 'CharliePassword123!',
+      });
+
+      removableUserId = loginRes.body.user.id;
+      removableUserToken = loginRes.body.token;
+    });
+
+    it('rejects unauthenticated user removal with 401', async () => {
+      const res = await request(app).delete(`/api/v1/admin/users/${removableUserId}`);
+      expect(res.status).toBe(401);
+    });
+
+    it('rejects non-admin calling user removal with 403 Forbidden', async () => {
+      const res = await request(app)
+        .delete(`/api/v1/admin/users/${removableUserId}`)
+        .set('Authorization', `Bearer ${internToken}`);
+
+      expect(res.status).toBe(403);
+    });
+
+    it('prevents admin from removing their own account with 400 Bad Request', async () => {
+      // Find admin's ID
+      const adminUser = await prisma.user.findUnique({
+        where: { email: 'admin@knowvia.internal' },
+      });
+
+      const res = await request(app)
+        .delete(`/api/v1/admin/users/${adminUser!.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/cannot remove or deactivate their own account/i);
+    });
+
+    it('returns 404 for non-existent user ID', async () => {
+      const res = await request(app)
+        .delete('/api/v1/admin/users/non-existent-uuid-12345')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(404);
+    });
+
+    it('admin successfully removes target user, revoking sessions and department memberships', async () => {
+      const res = await request(app)
+        .delete(`/api/v1/admin/users/${removableUserId}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toMatch(/successfully removed/i);
+
+      // Verify DB state
+      const dbUser = await prisma.user.findUnique({
+        where: { id: removableUserId },
+        include: { departmentMemberships: true },
+      });
+
+      expect(dbUser?.isActive).toBe(false);
+      expect(dbUser?.deletedAt).not.toBeNull();
+      expect(dbUser?.departmentMemberships.length).toBe(0); // Department access revoked
+    });
+
+    it('immediately rejects existing session token of removed user with 401', async () => {
+      // Protected profile request with the user's previous JWT
+      const res = await request(app)
+        .get('/api/v1/auth/me')
+        .set('Authorization', `Bearer ${removableUserToken}`);
+
+      expect(res.status).toBe(401);
+      expect(res.body.error).toMatch(/Invalid or inactive user session/i);
+    });
+
+    it('prevents removed user from logging in with 401', async () => {
+      const res = await request(app).post('/api/v1/auth/login').send({
+        email: 'test-onboarding-to-remove@knowvia.internal',
+        password: 'CharliePassword123!',
+      });
+
+      expect(res.status).toBe(401);
+      expect(res.body.error).toMatch(/inactive account/i);
     });
   });
 });

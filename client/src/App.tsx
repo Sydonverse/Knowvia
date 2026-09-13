@@ -566,7 +566,7 @@ export const App: React.FC = () => {
         {/* Main Workspace Body */}
         <main className="main-content-viewport">
           {activeTab === 'users' && user.role === 'ADMIN' ? (
-            <AdminUsersView availableDepartments={availableDepartments} />
+            <AdminUsersView availableDepartments={availableDepartments} currentUserId={user.id} />
           ) : activeDept ? (
             <>
               {activeTab === 'dashboard' && (

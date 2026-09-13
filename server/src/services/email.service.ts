@@ -47,7 +47,7 @@ export const emailTransporter = createEmailTransporter();
 export const sendOnboardingEmail = async (options: SendOnboardingEmailOptions): Promise<void> => {
   const { to, recipientName, role, departmentName, rawToken } = options;
 
-  const appUrl = (process.env.APP_URL || 'http://localhost:5173').replace(/\/$/, '');
+  const appUrl = (process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
   const senderUser = process.env.SMTP_USER || 'knowvia.testing@gmail.com';
   const onboardingUrl = `${appUrl}/onboarding?token=${encodeURIComponent(rawToken)}`;
 
@@ -305,7 +305,7 @@ Knowvia Knowledge Repository & Learning Management Platform
 export const sendPasswordResetEmail = async (options: SendPasswordResetEmailOptions): Promise<void> => {
   const { to, recipientName, rawToken } = options;
 
-  const appUrl = (process.env.APP_URL || 'http://localhost:5173').replace(/\/$/, '');
+  const appUrl = (process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
   const senderUser = process.env.SMTP_USER || 'knowvia.testing@gmail.com';
   const resetUrl = `${appUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
 

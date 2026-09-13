@@ -15,9 +15,10 @@ model User {
   lastName     String
   avatarUrl    String?
   role         String   @default("INTERN") // ADMIN, TUTOR, INTERN
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  isActive     Boolean   @default(true)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   onboardingInvitations OnboardingInvitation[]
   passwordResetTokens   PasswordResetToken[]

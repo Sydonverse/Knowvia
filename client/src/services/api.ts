@@ -89,6 +89,8 @@ class ApiClient {
     listUsers: () => this.request<{ users: any[] }>('/admin/users'),
     resendInvitation: (userId: string) =>
       this.request<any>(`/admin/users/${userId}/resend-invitation`, { method: 'POST' }),
+    deleteUser: (userId: string) =>
+      this.request<{ message: string }>(`/admin/users/${userId}`, { method: 'DELETE' }),
   };
 
   // Departments

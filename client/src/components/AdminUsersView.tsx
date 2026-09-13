@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Sparkles,
   Search,
+  Trash2,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Department } from '../types';
@@ -38,9 +39,10 @@ interface AdminUserItem {
 
 interface AdminUsersViewProps {
   availableDepartments: Department[];
+  currentUserId?: string;
 }
 
-export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartments }) => {
+export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartments, currentUserId }) => {
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,6 +64,12 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
   // Resend State
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [resendNotice, setResendNotice] = useState<{ id: string; msg: string; isError?: boolean } | null>(null);
+
+  // Delete / Removal State
+  const [targetDeleteUser, setTargetDeleteUser] = useState<AdminUserItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleteSuccess, setDeleteSuccess] = useState('');
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -126,6 +134,27 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
       setResendNotice({ id: userId, msg: err.message || 'Resend failed', isError: true });
     } finally {
       setResendingId(null);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!targetDeleteUser) return;
+    setIsDeleting(true);
+    setDeleteError('');
+    setDeleteSuccess('');
+
+    try {
+      const res = await api.admin.deleteUser(targetDeleteUser.id);
+      setDeleteSuccess(res.message || 'User successfully removed.');
+      fetchUsers();
+      setTimeout(() => {
+        setTargetDeleteUser(null);
+        setDeleteSuccess('');
+      }, 1200);
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to remove user account.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -401,19 +430,19 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
                       </td>
 
                       <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                        {!u.isActive && u.role !== 'ADMIN' && (
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                            {resendNotice && resendNotice.id === u.id && (
-                              <span
-                                style={{
-                                  fontSize: '11px',
-                                  color: resendNotice.isError ? 'var(--danger)' : 'var(--success)',
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {resendNotice.msg}
-                              </span>
-                            )}
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+                          {resendNotice && resendNotice.id === u.id && (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                color: resendNotice.isError ? 'var(--danger)' : 'var(--success)',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {resendNotice.msg}
+                            </span>
+                          )}
+                          {!u.isActive && u.role !== 'ADMIN' && (
                             <button
                               type="button"
                               className="btn-secondary"
@@ -424,8 +453,34 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
                               <Mail size={13} />
                               <span>{resendingId === u.id ? 'Sending...' : 'Resend Invite'}</span>
                             </button>
-                          </div>
-                        )}
+                          )}
+                          {u.id !== currentUserId ? (
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              style={{
+                                padding: '5px 10px',
+                                fontSize: '12px',
+                                color: '#b91c1c',
+                                borderColor: '#fecaca',
+                                background: '#fef2f2',
+                              }}
+                              onClick={() => {
+                                setTargetDeleteUser(u);
+                                setDeleteError('');
+                                setDeleteSuccess('');
+                              }}
+                              title="Remove user from platform"
+                            >
+                              <Trash2 size={13} />
+                              <span>Remove</span>
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: '11px', color: 'var(--text-faint)', fontStyle: 'italic' }}>
+                              Current Session
+                            </span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -604,6 +659,109 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Delete / Removal Confirmation Modal */}
+      {targetDeleteUser && (
+        <div className="modal-backdrop">
+          <div className="modal-card" style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b91c1c' }}>
+                <AlertCircle size={20} />
+                <h3 className="modal-title" style={{ color: '#b91c1c' }}>
+                  Confirm User Removal
+                </h3>
+              </div>
+              <button
+                className="modal-close-btn"
+                onClick={() => setTargetDeleteUser(null)}
+                type="button"
+                disabled={isDeleting}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ padding: '8px 0 16px', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              Are you sure you want to remove <strong>{targetDeleteUser.firstName} {targetDeleteUser.lastName}</strong>?
+            </div>
+
+            <div
+              style={{
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-md)',
+                padding: '12px 14px',
+                marginBottom: '16px',
+                fontSize: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Email:</span>
+                <span style={{ fontWeight: 600 }}>{targetDeleteUser.email}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Role:</span>
+                <span style={{ fontWeight: 600 }}>{targetDeleteUser.role}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Department:</span>
+                <span style={{ fontWeight: 600 }}>{targetDeleteUser.departments[0]?.name || 'General'}</span>
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: '#fffbeb',
+                border: '1px solid #fde68a',
+                color: '#92400e',
+                borderRadius: 'var(--radius-md)',
+                padding: '10px 12px',
+                fontSize: '11px',
+                lineHeight: 1.5,
+                marginBottom: '16px',
+              }}
+            >
+              <strong>Security Action:</strong> This user will be immediately deactivated and their sessions revoked. Any pending onboarding links or password reset requests will be canceled. Historical materials and assignments created by this user are preserved for the department.
+            </div>
+
+            {deleteError && <div className="form-error-banner">{deleteError}</div>}
+            {deleteSuccess && (
+              <div
+                style={{
+                  background: 'var(--success-light)',
+                  border: '1px solid var(--success-border)',
+                  color: '#15803d',
+                  padding: '10px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '13px',
+                  marginBottom: '14px',
+                }}
+              >
+                {deleteSuccess}
+              </div>
+            )}
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setTargetDeleteUser(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ background: '#dc2626', borderColor: '#dc2626' }}
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+              >
+                {isDeleting ? 'Removing User...' : 'Yes, Remove User'}
+              </button>
+            </div>
           </div>
         </div>
       )}

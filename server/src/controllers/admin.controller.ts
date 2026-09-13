@@ -133,6 +133,7 @@ export const createUser = async (req: AuthRequest, res: Response): Promise<void>
 export const listUsers = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const users = await prisma.user.findMany({
+      where: { deletedAt: null },
       select: {
         id: true,
         email: true,
@@ -272,5 +273,78 @@ export const resendInvitation = async (req: AuthRequest, res: Response): Promise
   } catch (error) {
     console.error('Admin resendInvitation error:', error);
     res.status(500).json({ error: 'Failed to resend onboarding invitation.' });
+  }
+};
+
+/**
+ * DELETE /api/v1/admin/users/:id
+ * Soft-deletes a user from Knowvia:
+ * - Prevents self-removal by administrators
+ * - Deactivates user (isActive = false, deletedAt = now)
+ * - Invalidates all active sessions (rejected immediately by authenticate middleware)
+ * - Invalidates pending onboarding invitations and password reset tokens
+ * - Revokes department memberships
+ * - Preserves historical curriculum materials and assignments to avoid cascade destruction
+ */
+export const deleteUser = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // 1. Prevent admin self-deletion
+    if (req.user && req.user.id === id) {
+      res.status(400).json({ error: 'Admins cannot remove or deactivate their own account.' });
+      return;
+    }
+
+    // 2. Locate target user
+    const targetUser = await prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!targetUser) {
+      res.status(404).json({ error: 'User not found.' });
+      return;
+    }
+
+    if (targetUser.deletedAt) {
+      res.status(400).json({ error: 'This user account has already been removed.' });
+      return;
+    }
+
+    // 3. Atomically deactivate user, cancel invitations, and revoke department access
+    await prisma.$transaction(async (tx) => {
+      // Deactivate user
+      await tx.user.update({
+        where: { id: targetUser.id },
+        data: {
+          isActive: false,
+          deletedAt: new Date(),
+        },
+      });
+
+      // Invalidate any unused onboarding invitations
+      await tx.onboardingInvitation.updateMany({
+        where: { userId: targetUser.id, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+
+      // Invalidate any unused password reset tokens
+      await tx.passwordResetToken.updateMany({
+        where: { userId: targetUser.id, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+
+      // Remove department memberships to sever workspace access
+      await tx.departmentMember.deleteMany({
+        where: { userId: targetUser.id },
+      });
+    });
+
+    res.json({
+      message: `User ${targetUser.firstName} ${targetUser.lastName} (${targetUser.email}) has been successfully removed.`,
+    });
+  } catch (error) {
+    console.error('Admin deleteUser error:', error);
+    res.status(500).json({ error: 'Failed to remove user account.' });
   }
 };
