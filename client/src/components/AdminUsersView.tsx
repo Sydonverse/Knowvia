@@ -493,156 +493,162 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
 
       {/* Admin User Creation Modal */}
       {showCreateModal && (
-        <div className="modal-backdrop">
-          <div className="modal-card" style={{ maxWidth: '520px' }}>
+        <div
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !modalSubmitting) setShowCreateModal(false);
+          }}
+        >
+          <div className="modal-dialog" style={{ maxWidth: '520px' }}>
             <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="modal-title-group">
                 <UserPlus size={18} color="var(--primary)" />
                 <h3 className="modal-title">Create New User Account</h3>
               </div>
               <button
-                className="modal-close-btn"
+                className="btn-close-modal"
                 onClick={() => setShowCreateModal(false)}
                 type="button"
+                disabled={modalSubmitting}
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div
-              style={{
-                background: 'var(--primary-light)',
-                border: '1px solid var(--primary-subtle)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 14px',
-                marginBottom: '16px',
-                fontSize: '12px',
-                color: 'var(--primary)',
-                lineHeight: 1.5,
-              }}
-            >
-              <strong>Security Protocol:</strong> You do not need to assign a password. The user will receive an invitation email containing a secure 24-hour one-time onboarding link to set their own password.
-            </div>
-
-            {modalError && <div className="form-error-banner">{modalError}</div>}
-            {modalSuccess && (
-              <div
-                style={{
-                  background: 'var(--success-light)',
-                  border: '1px solid var(--success-border)',
-                  color: '#15803d',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '13px',
-                  marginBottom: '14px',
-                }}
-              >
-                {modalSuccess}
-              </div>
-            )}
-
-            <form onSubmit={handleCreateUser} className="modal-form">
-              <div className="form-grid-2">
-                <div className="form-field">
-                  <label className="field-label">First Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Jane"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="input-clean"
-                  />
-                </div>
-                <div className="form-field">
-                  <label className="field-label">Last Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Doe"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="input-clean"
-                  />
-                </div>
-              </div>
-
-              <div className="form-field">
-                <label className="field-label">User Email Address *</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="name@organization.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input-clean"
-                />
-                <span className="field-help-text">
-                  The onboarding invitation link will be sent to this email address.
-                </span>
-              </div>
-
-              <div className="form-field">
-                <label className="field-label">Assigned Role *</label>
-                <div className="role-selector-cards">
-                  <label
-                    className={`role-select-card ${role === 'INTERN' ? 'selected' : ''}`}
-                    onClick={() => setRole('INTERN')}
-                  >
-                    <input
-                      type="radio"
-                      name="modal-role"
-                      value="INTERN"
-                      checked={role === 'INTERN'}
-                      onChange={() => setRole('INTERN')}
-                    />
-                    <GraduationCap size={18} color="#10b981" />
-                    <div>
-                      <strong>Intern / Student</strong>
-                      <div className="role-card-desc">Class timetable, materials & assignment submissions</div>
-                    </div>
-                  </label>
-
-                  <label
-                    className={`role-select-card ${role === 'TUTOR' ? 'selected' : ''}`}
-                    onClick={() => setRole('TUTOR')}
-                  >
-                    <input
-                      type="radio"
-                      name="modal-role"
-                      value="TUTOR"
-                      checked={role === 'TUTOR'}
-                      onChange={() => setRole('TUTOR')}
-                    />
-                    <ShieldCheck size={18} color="#4f46e5" />
-                    <div>
-                      <strong>Department Tutor</strong>
-                      <div className="role-card-desc">Class scheduler, file uploads & reviews</div>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              <div className="form-field">
-                <label className="field-label">Department Enrollment *</label>
-                <select
-                  value={departmentSlug}
-                  onChange={(e) => setDepartmentSlug(e.target.value)}
-                  className="input-clean"
-                  required
+            <form onSubmit={handleCreateUser}>
+              <div className="modal-body">
+                <div
+                  style={{
+                    background: 'var(--primary-light)',
+                    border: '1px solid var(--primary-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '12px 14px',
+                    fontSize: '12px',
+                    color: 'var(--primary)',
+                    lineHeight: 1.5,
+                  }}
                 >
-                  {availableDepartments.map((dept) => (
-                    <option key={dept.slug} value={dept.slug}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-                <span className="field-help-text">
-                  Enforces single-department membership isolation.
-                </span>
+                  <strong>Security Protocol:</strong> You do not need to assign a password. The user will receive an invitation email containing a secure 24-hour one-time onboarding link to set their own password.
+                </div>
+
+                {modalError && <div className="form-error-banner">{modalError}</div>}
+                {modalSuccess && (
+                  <div
+                    style={{
+                      background: 'var(--success-light)',
+                      border: '1px solid var(--success-border)',
+                      color: '#15803d',
+                      padding: '10px 14px',
+                      borderRadius: 'var(--radius-md)',
+                      fontSize: '13px',
+                    }}
+                  >
+                    {modalSuccess}
+                  </div>
+                )}
+
+                <div className="form-grid-2">
+                  <div className="form-field">
+                    <label className="field-label">First Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Jane"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="input-clean"
+                    />
+                  </div>
+                  <div className="form-field">
+                    <label className="field-label">Last Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Doe"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="input-clean"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">User Email Address *</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="name@organization.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input-clean"
+                  />
+                  <span className="field-help-text">
+                    The onboarding invitation link will be sent to this email address.
+                  </span>
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Assigned Role *</label>
+                  <div className="role-selector-cards">
+                    <label
+                      className={`role-select-card ${role === 'INTERN' ? 'selected' : ''}`}
+                      onClick={() => setRole('INTERN')}
+                    >
+                      <input
+                        type="radio"
+                        name="modal-role"
+                        value="INTERN"
+                        checked={role === 'INTERN'}
+                        onChange={() => setRole('INTERN')}
+                      />
+                      <GraduationCap size={18} color="#10b981" />
+                      <div>
+                        <strong>Intern / Student</strong>
+                        <div className="role-card-desc">Class timetable, materials & assignment submissions</div>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`role-select-card ${role === 'TUTOR' ? 'selected' : ''}`}
+                      onClick={() => setRole('TUTOR')}
+                    >
+                      <input
+                        type="radio"
+                        name="modal-role"
+                        value="TUTOR"
+                        checked={role === 'TUTOR'}
+                        onChange={() => setRole('TUTOR')}
+                      />
+                      <ShieldCheck size={18} color="#4f46e5" />
+                      <div>
+                        <strong>Department Tutor</strong>
+                        <div className="role-card-desc">Class scheduler, file uploads & reviews</div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Department Enrollment *</label>
+                  <select
+                    value={departmentSlug}
+                    onChange={(e) => setDepartmentSlug(e.target.value)}
+                    className="input-clean"
+                    required
+                  >
+                    {availableDepartments.map((dept) => (
+                      <option key={dept.slug} value={dept.slug}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="field-help-text">
+                    Enforces single-department membership isolation.
+                  </span>
+                </div>
               </div>
 
-              <div className="modal-actions mt-4">
+              <div className="modal-footer">
                 <button
                   type="button"
                   className="btn-secondary"
@@ -664,17 +670,22 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
       )}
       {/* Delete / Removal Confirmation Modal */}
       {targetDeleteUser && (
-        <div className="modal-backdrop">
-          <div className="modal-card" style={{ maxWidth: '480px' }}>
+        <div
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isDeleting) setTargetDeleteUser(null);
+          }}
+        >
+          <div className="modal-dialog" style={{ maxWidth: '480px' }}>
             <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b91c1c' }}>
+              <div className="modal-title-group" style={{ color: '#b91c1c' }}>
                 <AlertCircle size={20} />
                 <h3 className="modal-title" style={{ color: '#b91c1c' }}>
                   Confirm User Removal
                 </h3>
               </div>
               <button
-                className="modal-close-btn"
+                className="btn-close-modal"
                 onClick={() => setTargetDeleteUser(null)}
                 type="button"
                 disabled={isDeleting}
@@ -683,67 +694,66 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
               </button>
             </div>
 
-            <div style={{ padding: '8px 0 16px', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Are you sure you want to remove <strong>{targetDeleteUser.firstName} {targetDeleteUser.lastName}</strong>?
-            </div>
-
-            <div
-              style={{
-                background: 'var(--bg-subtle)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 14px',
-                marginBottom: '16px',
-                fontSize: '12px',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Email:</span>
-                <span style={{ fontWeight: 600 }}>{targetDeleteUser.email}</span>
+            <div className="modal-body">
+              <div style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                Are you sure you want to remove <strong>{targetDeleteUser.firstName} {targetDeleteUser.lastName}</strong>?
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Role:</span>
-                <span style={{ fontWeight: 600 }}>{targetDeleteUser.role}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Department:</span>
-                <span style={{ fontWeight: 600 }}>{targetDeleteUser.departments[0]?.name || 'General'}</span>
-              </div>
-            </div>
 
-            <div
-              style={{
-                background: '#fffbeb',
-                border: '1px solid #fde68a',
-                color: '#92400e',
-                borderRadius: 'var(--radius-md)',
-                padding: '10px 12px',
-                fontSize: '11px',
-                lineHeight: 1.5,
-                marginBottom: '16px',
-              }}
-            >
-              <strong>Security Action:</strong> This user will be immediately deactivated and their sessions revoked. Any pending onboarding links or password reset requests will be canceled. Historical materials and assignments created by this user are preserved for the department.
-            </div>
-
-            {deleteError && <div className="form-error-banner">{deleteError}</div>}
-            {deleteSuccess && (
               <div
                 style={{
-                  background: 'var(--success-light)',
-                  border: '1px solid var(--success-border)',
-                  color: '#15803d',
-                  padding: '10px 14px',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: 'var(--radius-md)',
-                  fontSize: '13px',
-                  marginBottom: '14px',
+                  padding: '12px 14px',
+                  fontSize: '12px',
                 }}
               >
-                {deleteSuccess}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Email:</span>
+                  <span style={{ fontWeight: 600 }}>{targetDeleteUser.email}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Role:</span>
+                  <span style={{ fontWeight: 600 }}>{targetDeleteUser.role}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Department:</span>
+                  <span style={{ fontWeight: 600 }}>{targetDeleteUser.departments[0]?.name || 'General'}</span>
+                </div>
               </div>
-            )}
 
-            <div className="modal-actions">
+              <div
+                style={{
+                  background: '#fffbeb',
+                  border: '1px solid #fde68a',
+                  color: '#92400e',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '10px 12px',
+                  fontSize: '11px',
+                  lineHeight: 1.5,
+                }}
+              >
+                <strong>Security Action:</strong> This user will be immediately deactivated and their sessions revoked. Any pending onboarding links or password reset requests will be canceled. Historical materials and assignments created by this user are preserved for the department.
+              </div>
+
+              {deleteError && <div className="form-error-banner">{deleteError}</div>}
+              {deleteSuccess && (
+                <div
+                  style={{
+                    background: 'var(--success-light)',
+                    border: '1px solid var(--success-border)',
+                    color: '#15803d',
+                    padding: '10px 14px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '13px',
+                  }}
+                >
+                  {deleteSuccess}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
               <button
                 type="button"
                 className="btn-secondary"
