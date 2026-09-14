@@ -9,7 +9,6 @@ import {
   FileCode,
   FileArchive,
   FileCheck,
-  ShieldCheck,
   User as UserIcon,
 } from 'lucide-react';
 import { Material, DepartmentMemberContext } from '../types';
@@ -76,15 +75,6 @@ export const MaterialsView: React.FC<MaterialsViewProps> = ({
             <span>Upload Learning Material</span>
           </button>
         )}
-      </div>
-
-      {/* Security & Size Notice Banner */}
-      <div className="security-notice-banner">
-        <ShieldCheck size={18} color="#10b981" />
-        <div className="security-notice-text">
-          <strong>Security Verified Repository:</strong> Files are validated against malicious executable
-          payloads using magic-byte signature inspection with a 25MB storage efficiency limit.
-        </div>
       </div>
 
       {/* Search & Filter Bar */}

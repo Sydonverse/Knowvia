@@ -8,7 +8,6 @@ import {
   Building,
   CheckCircle2,
   Clock,
-  RotateCw,
   X,
   AlertCircle,
   Sparkles,
@@ -202,10 +201,6 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
             >
               <UserPlus size={16} />
               <span>Create & Invite User</span>
-            </button>
-            <button className="btn-secondary" onClick={fetchUsers} disabled={loading}>
-              <RotateCw size={15} className={loading ? 'spin' : ''} />
-              <span>Refresh Directory</span>
             </button>
           </div>
         </div>
