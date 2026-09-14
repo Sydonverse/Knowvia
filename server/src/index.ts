@@ -12,6 +12,7 @@ import departmentRoutes from './routes/department.routes';
 import notificationRoutes from './routes/notification.routes';
 import { initSocket } from './socket';
 import { initReminderScheduler } from './services/reminder.service';
+import { initAdminBootstrap } from './services/bootstrap.service';
 
 const app = express();
 const server = http.createServer(app);
@@ -65,13 +66,14 @@ initSocket(server);
 initReminderScheduler();
 
 // Start Server
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`===========================================`);
   console.log(`🚀 Knowvia Platform API Server running on port ${PORT}`);
   console.log(`📡 WebSocket Real-time active`);
   console.log(`⏰ Class reminder scheduler initialized`);
   console.log(`🌐 Client Origin: ${CLIENT_URL}`);
   console.log(`===========================================`);
+  await initAdminBootstrap();
 });
 
 export { app, server };

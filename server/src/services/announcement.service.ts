@@ -32,7 +32,7 @@ export const createAutoAnnouncement = async (input: AutoAnnouncementInput) => {
       },
       include: {
         author: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
         department: {
           select: { id: true, name: true, slug: true, colorHex: true },

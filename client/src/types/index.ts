@@ -6,7 +6,6 @@ export interface User {
   firstName: string;
   lastName: string;
   role: UserRole;
-  avatarUrl?: string | null;
   departments?: DepartmentMemberContext[];
   department?: DepartmentMemberContext;
 }
@@ -55,7 +54,6 @@ export interface ClassSchedule {
     firstName: string;
     lastName: string;
     role: string;
-    avatarUrl?: string | null;
   };
 }
 
@@ -75,7 +73,6 @@ export interface Material {
     firstName: string;
     lastName: string;
     role: string;
-    avatarUrl?: string | null;
   };
 }
 
@@ -95,7 +92,6 @@ export interface Announcement {
     firstName: string;
     lastName: string;
     role: string;
-    avatarUrl?: string | null;
   };
   department?: {
     id: string;
@@ -140,7 +136,6 @@ export interface Submission {
     firstName: string;
     lastName: string;
     role: string;
-    avatarUrl?: string | null;
   };
   reviews: SubmissionReview[];
 }
@@ -160,7 +155,6 @@ export interface Assignment {
     firstName: string;
     lastName: string;
     role: string;
-    avatarUrl?: string | null;
   };
   submissions: Submission[];
 }
@@ -198,7 +192,6 @@ export interface ChatMessage {
     firstName: string;
     lastName: string;
     role: string;
-    avatarUrl?: string | null;
   };
   replyTo?: {
     id: string;

@@ -21,7 +21,7 @@ export const listMessages = async (req: AuthRequest, res: Response): Promise<voi
       where: { departmentId: dept.id },
       include: {
         sender: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
         replyTo: {
           select: {
@@ -79,7 +79,7 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
       },
       include: {
         sender: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
         replyTo: {
           select: {

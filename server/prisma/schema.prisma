@@ -13,7 +13,6 @@ model User {
   passwordHash String?
   firstName    String
   lastName     String
-  avatarUrl    String?
   role         String   @default("INTERN") // ADMIN, TUTOR, INTERN
   isActive     Boolean   @default(true)
   deletedAt    DateTime?

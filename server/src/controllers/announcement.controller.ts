@@ -39,7 +39,7 @@ export const listAnnouncements = async (req: AuthRequest, res: Response): Promis
       },
       include: {
         author: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
         department: {
           select: { id: true, name: true, slug: true, colorHex: true },
@@ -107,7 +107,7 @@ export const createAnnouncement = async (req: AuthRequest, res: Response): Promi
       },
       include: {
         author: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
         department: {
           select: { id: true, name: true, slug: true, colorHex: true },

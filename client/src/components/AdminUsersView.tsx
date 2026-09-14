@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Department } from '../types';
+import { UserAvatar } from './UserAvatar';
+import { formatDisplayName } from '../utils/avatar';
 
 interface AdminUserItem {
   id: string;
@@ -26,7 +28,6 @@ interface AdminUserItem {
   role: 'ADMIN' | 'TUTOR' | 'INTERN';
   isActive: boolean;
   createdAt: string;
-  avatarUrl?: string | null;
   departments: { id: string; name: string; slug: string; colorHex: string }[];
   onboardingStatus: 'ACTIVE' | 'PENDING' | 'EXPIRED' | 'INACTIVE';
   latestInvitation?: {
@@ -330,10 +331,15 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
                       }}
                     >
                       <td style={{ padding: '14px 16px' }}>
-                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                          {u.firstName} {u.lastName}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <UserAvatar firstName={u.firstName} lastName={u.lastName} role={u.role} size="sm" />
+                          <div>
+                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                              {formatDisplayName(u.firstName, u.lastName)}
+                            </div>
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{u.email}</div>
+                          </div>
                         </div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{u.email}</div>
                       </td>
 
                       <td style={{ padding: '14px 16px' }}>
@@ -696,7 +702,7 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
 
             <div className="modal-body">
               <div style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                Are you sure you want to remove <strong>{targetDeleteUser.firstName} {targetDeleteUser.lastName}</strong>?
+                Are you sure you want to remove <strong>{formatDisplayName(targetDeleteUser.firstName, targetDeleteUser.lastName)}</strong>?
               </div>
 
               <div

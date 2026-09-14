@@ -33,13 +33,13 @@ export const listAssignments = async (req: AuthRequest, res: Response): Promise<
       where: { departmentId: dept.id },
       include: {
         creator: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
         submissions: {
           where: user.role === 'INTERN' ? { submittedById: user.id } : undefined,
           include: {
             submitter: {
-              select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+              select: { id: true, firstName: true, lastName: true, role: true },
             },
             reviews: {
               include: {
@@ -173,7 +173,7 @@ export const createAssignment = async (req: AuthRequest, res: Response): Promise
       },
       include: {
         creator: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
         submissions: true,
       },
@@ -272,7 +272,7 @@ export const submitAssignment = async (req: AuthRequest, res: Response): Promise
       },
       include: {
         submitter: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
         reviews: true,
       },

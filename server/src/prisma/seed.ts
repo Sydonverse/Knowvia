@@ -81,10 +81,9 @@ async function main() {
     data: {
       email: 'admin@knowvia.internal',
       passwordHash: defaultPasswordHash,
-      firstName: 'Sarah',
-      lastName: 'Director',
+      firstName: 'NASCOM',
+      lastName: '',
       role: 'ADMIN',
-      avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
     },
   });
 
@@ -96,7 +95,6 @@ async function main() {
       firstName: 'Alex',
       lastName: 'Vance',
       role: 'TUTOR',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     },
   });
 
@@ -107,7 +105,6 @@ async function main() {
       firstName: 'Marcus',
       lastName: 'Chen',
       role: 'TUTOR',
-      avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
     },
   });
 
@@ -119,7 +116,6 @@ async function main() {
       firstName: 'David',
       lastName: 'Kim',
       role: 'INTERN',
-      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
     },
   });
 
@@ -130,7 +126,6 @@ async function main() {
       firstName: 'Maya',
       lastName: 'Patel',
       role: 'INTERN',
-      avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
     },
   });
 
@@ -141,7 +136,6 @@ async function main() {
       firstName: 'Jordan',
       lastName: 'Lee',
       role: 'INTERN',
-      avatarUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150',
     },
   });
 
@@ -381,18 +375,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Knowvia database successfully seeded!');
-  console.log(`
-  DEMO CREDENTIALS:
-  ======================================================
-  Admin:               admin@knowvia.internal        / password123
-  Cyber Tutor:         cyber.tutor@knowvia.internal  / password123
-  Web Dev Tutor:       web.tutor@knowvia.internal    / password123
-  Cyber Intern (David): david.cyber@knowvia.internal / password123
-  Cyber Intern (Maya):  maya.cyber@knowvia.internal  / password123
-  Web Intern (Jordan): jordan.web@knowvia.internal   / password123
-  ======================================================
-  `);
+  console.log('✅ Knowvia database successfully seeded with initial departments and NASCOM administrator.');
 }
 
 main()

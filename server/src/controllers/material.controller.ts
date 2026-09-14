@@ -25,7 +25,7 @@ export const listMaterials = async (req: AuthRequest, res: Response): Promise<vo
       where: { departmentId: dept.id },
       include: {
         uploader: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -106,7 +106,7 @@ export const uploadMaterial = async (req: AuthRequest, res: Response): Promise<v
       },
       include: {
         uploader: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
       },
     });

@@ -142,7 +142,6 @@ export const listUsers = async (_req: AuthRequest, res: Response): Promise<void>
         role: true,
         isActive: true,
         createdAt: true,
-        avatarUrl: true,
         departmentMemberships: {
           where: { status: 'APPROVED' },
           include: {
@@ -178,7 +177,6 @@ export const listUsers = async (_req: AuthRequest, res: Response): Promise<void>
         role: u.role,
         isActive: u.isActive,
         createdAt: u.createdAt,
-        avatarUrl: u.avatarUrl,
         departments: u.departmentMemberships.map((m) => m.department),
         onboardingStatus: u.isActive
           ? 'ACTIVE'

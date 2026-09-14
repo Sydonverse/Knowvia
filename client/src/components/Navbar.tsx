@@ -11,9 +11,10 @@ import {
   ChevronDown,
   User as UserIcon,
   BookOpen,
-  Sparkles,
 } from 'lucide-react';
 import { User, DepartmentMemberContext, AppNotification } from '../types';
+import { UserAvatar } from './UserAvatar';
+import { formatDisplayName } from '../utils/avatar';
 
 interface NavbarProps {
   user: User | null;
@@ -24,7 +25,6 @@ interface NavbarProps {
   unreadCount: number;
   onOpenNotifications: () => void;
   onLogout: () => void;
-  onQuickLogin: (email: string) => void;
   canInstallPwa: boolean;
   onInstallPwa: () => void;
 }
@@ -37,12 +37,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   unreadCount,
   onOpenNotifications,
   onLogout,
-  onQuickLogin,
   canInstallPwa,
   onInstallPwa,
 }) => {
   const [showDeptMenu, setShowDeptMenu] = useState(false);
-  const [showDemoMenu, setShowDemoMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const getDeptIcon = (iconName: string) => {
@@ -145,94 +143,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        {/* Quick Demo Switcher for Evaluation */}
-        <div className="relative-container">
-          <button
-            className="btn-demo-pill"
-            onClick={() => setShowDemoMenu(!showDemoMenu)}
-            title="Switch Demo Role"
-          >
-            <Sparkles size={14} />
-            <span>Switch Role</span>
-            <ChevronDown size={12} />
-          </button>
 
-          {showDemoMenu && (
-            <div className="dropdown-menu demo-dropdown">
-              <div className="dropdown-header">Switch Demo User</div>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  onQuickLogin('admin@knowvia.internal');
-                  setShowDemoMenu(false);
-                }}
-              >
-                <div className="demo-dot admin-dot"></div>
-                <div>
-                  <strong>Sarah Director</strong>
-                  <span className="demo-role-tag">ADMIN</span>
-                  <div className="demo-hint">Global oversight across all departments</div>
-                </div>
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  onQuickLogin('cyber.tutor@knowvia.internal');
-                  setShowDemoMenu(false);
-                }}
-              >
-                <div className="demo-dot tutor-dot"></div>
-                <div>
-                  <strong>Alex Vance</strong>
-                  <span className="demo-role-tag">TUTOR (Cyber)</span>
-                  <div className="demo-hint">Schedule classes, upload materials, create & review assignments</div>
-                </div>
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  onQuickLogin('david.cyber@knowvia.internal');
-                  setShowDemoMenu(false);
-                }}
-              >
-                <div className="demo-dot intern-dot"></div>
-                <div>
-                  <strong>David Kim</strong>
-                  <span className="demo-role-tag">STUDENT (Cyber)</span>
-                  <div className="demo-hint">View timetable, download materials, progress tracker, submit work</div>
-                </div>
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  onQuickLogin('maya.cyber@knowvia.internal');
-                  setShowDemoMenu(false);
-                }}
-              >
-                <div className="demo-dot intern-dot"></div>
-                <div>
-                  <strong>Maya Patel</strong>
-                  <span className="demo-role-tag">STUDENT (Cyber)</span>
-                  <div className="demo-hint">Assigned work needing revision</div>
-                </div>
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  onQuickLogin('web.tutor@knowvia.internal');
-                  setShowDemoMenu(false);
-                }}
-              >
-                <div className="demo-dot tutor-dot"></div>
-                <div>
-                  <strong>Marcus Chen</strong>
-                  <span className="demo-role-tag">TUTOR (Web Dev)</span>
-                  <div className="demo-hint">Web Dev department workspace</div>
-                </div>
-              </button>
-            </div>
-          )}
-        </div>
 
         {/* Bell Icon Notification Button */}
         <button
@@ -253,17 +164,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="user-profile-pill"
             onClick={() => setShowUserMenu(!showUserMenu)}
           >
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt={user.firstName} className="avatar-img-sm" />
-            ) : (
-              <div className="avatar-fallback-sm">
-                {user?.firstName?.[0]}
-                {user?.lastName?.[0]}
-              </div>
-            )}
+            <UserAvatar firstName={user?.firstName} lastName={user?.lastName} role={user?.role} size="sm" />
             <div className="user-profile-meta">
               <span className="user-profile-name">
-                {user?.firstName} {user?.lastName}
+                {formatDisplayName(user?.firstName, user?.lastName)}
               </span>
               <span className={`user-role-chip ${roleBadgeClass}`}>
                 {user?.role}
@@ -276,7 +180,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="dropdown-menu user-dropdown">
               <div className="dropdown-user-header">
                 <div className="dropdown-user-name">
-                  {user?.firstName} {user?.lastName}
+                  {formatDisplayName(user?.firstName, user?.lastName)}
                 </div>
                 <div className="dropdown-user-email">{user?.email}</div>
                 <div className="dropdown-user-role">Role: {user?.role}</div>

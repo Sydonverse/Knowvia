@@ -456,7 +456,7 @@ export const App: React.FC = () => {
   };
 
   // Auth Handlers
-  const handleLogin = async (email: string, password = 'password123') => {
+  const handleLogin = async (email: string, password: string) => {
     const res = await api.auth.login({ email, password });
     if (res.token) {
       api.setToken(res.token);
@@ -548,7 +548,6 @@ export const App: React.FC = () => {
         unreadCount={unreadCount}
         onOpenNotifications={() => setShowNotifDrawer(true)}
         onLogout={handleLogout}
-        onQuickLogin={handleLogin}
         canInstallPwa={canInstallPwa}
         onInstallPwa={handleInstallPwa}
       />

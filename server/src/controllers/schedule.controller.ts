@@ -22,7 +22,7 @@ export const listSchedules = async (req: AuthRequest, res: Response): Promise<vo
       where: { departmentId: dept.id },
       include: {
         scheduler: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
       },
       orderBy: { startTime: 'asc' },
@@ -80,7 +80,7 @@ export const createSchedule = async (req: AuthRequest, res: Response): Promise<v
       },
       include: {
         scheduler: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
       },
     });
@@ -162,7 +162,7 @@ export const updateSchedule = async (req: AuthRequest, res: Response): Promise<v
       },
       include: {
         scheduler: {
-          select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+          select: { id: true, firstName: true, lastName: true, role: true },
         },
       },
     });

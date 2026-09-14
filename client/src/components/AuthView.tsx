@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { BookOpen, Sparkles, LogIn, Lock, Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { BookOpen, LogIn, Lock, Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 
 interface AuthViewProps {
-  onLogin: (email: string, password?: string) => Promise<void>;
+  onLogin: (email: string, password: string) => Promise<void>;
 }
 
 export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('password123');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -33,17 +33,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
     }
   };
 
-  const handleQuickLogin = async (demoEmail: string) => {
-    setErrorMsg('');
-    setLoading(true);
-    try {
-      await onLogin(demoEmail, 'password123');
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Quick login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,41 +166,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
         ) : (
           /* ─── NORMAL SIGN IN VIEW ────────────────────────── */
           <>
-            {/* Quick Demo Personas Box */}
-            <div className="quick-demo-section">
-              <div className="quick-demo-header">
-                <Sparkles size={14} color="#4f46e5" />
-                <span>Quick-Login Demo Accounts:</span>
-              </div>
-              <div className="demo-pills-container">
-                <button
-                  type="button"
-                  className="demo-pill-btn"
-                  onClick={() => handleQuickLogin('david.cyber@knowvia.internal')}
-                >
-                  <span className="demo-pill-dot intern-dot"></span>
-                  <span>David (Student)</span>
-                </button>
 
-                <button
-                  type="button"
-                  className="demo-pill-btn"
-                  onClick={() => handleQuickLogin('cyber.tutor@knowvia.internal')}
-                >
-                  <span className="demo-pill-dot tutor-dot"></span>
-                  <span>Alex (Tutor)</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="demo-pill-btn"
-                  onClick={() => handleQuickLogin('admin@knowvia.internal')}
-                >
-                  <span className="demo-pill-dot admin-dot"></span>
-                  <span>Sarah (Admin)</span>
-                </button>
-              </div>
-            </div>
 
             <div style={{ marginBottom: '16px', textAlign: 'center' }}>
               <div

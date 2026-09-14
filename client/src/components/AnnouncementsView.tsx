@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { Announcement, DepartmentMemberContext } from '../types';
 import { ActiveTab } from './Sidebar';
+import { UserAvatar } from './UserAvatar';
+import { formatDisplayName } from '../utils/avatar';
 
 interface AnnouncementsViewProps {
   announcements: Announcement[];
@@ -132,21 +134,15 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
 
                 <div className="announcement-header-row">
                   <div className="ann-author-box">
-                    {ann.author?.avatarUrl ? (
-                      <img
-                        src={ann.author.avatarUrl}
-                        alt={ann.author.firstName}
-                        className="ann-avatar-img"
-                      />
-                    ) : (
-                      <div className="ann-avatar-fallback">
-                        {ann.author?.firstName?.[0]}
-                        {ann.author?.lastName?.[0]}
-                      </div>
-                    )}
+                    <UserAvatar
+                      firstName={ann.author?.firstName}
+                      lastName={ann.author?.lastName}
+                      role={ann.author?.role}
+                      size="md"
+                    />
                     <div>
                       <div className="ann-author-name">
-                        {ann.author?.firstName} {ann.author?.lastName}
+                        {formatDisplayName(ann.author?.firstName, ann.author?.lastName)}
                       </div>
                       <div className="ann-author-role">
                         {ann.author?.role === 'ADMIN'

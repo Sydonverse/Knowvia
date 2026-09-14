@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { ChatMessage, DepartmentMemberContext, User } from '../types';
 import { socketService } from '../services/socket';
+import { UserAvatar } from './UserAvatar';
+import { formatDisplayName } from '../utils/avatar';
 
 interface ChatViewProps {
   messages: ChatMessage[];
@@ -103,13 +105,12 @@ export const ChatView: React.FC<ChatViewProps> = ({
               >
                 {!isMe && (
                   <div className="chat-sender-avatar">
-                    {msg.sender?.avatarUrl ? (
-                      <img src={msg.sender.avatarUrl} alt="" className="chat-avatar-img" />
-                    ) : (
-                      <div className="chat-avatar-fallback">
-                        {msg.sender?.firstName?.[0] || 'U'}
-                      </div>
-                    )}
+                    <UserAvatar
+                      firstName={msg.sender?.firstName}
+                      lastName={msg.sender?.lastName}
+                      role={msg.sender?.role}
+                      size="sm"
+                    />
                   </div>
                 )}
 
@@ -117,7 +118,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   {/* Sender Metadata Row */}
                   <div className="chat-bubble-meta">
                     <span className="chat-sender-name">
-                      {isMe ? 'You' : `${msg.sender?.firstName} ${msg.sender?.lastName}`}
+                      {isMe ? 'You' : formatDisplayName(msg.sender?.firstName, msg.sender?.lastName)}
                     </span>
                     {(isTutor || isAdmin) && (
                       <span className="chat-role-pill">

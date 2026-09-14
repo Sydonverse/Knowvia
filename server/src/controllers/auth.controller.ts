@@ -89,7 +89,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        avatarUrl: user.avatarUrl,
         departments: userDepartments,
       },
     });
@@ -154,7 +153,6 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        avatarUrl: user.avatarUrl,
         departments: userDepartments,
       },
     });

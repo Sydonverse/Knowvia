@@ -1,4 +1,5 @@
 import request from 'supertest';
+import bcrypt from 'bcryptjs';
 import { app, server } from '../index';
 import prisma from '../config/prisma';
 import { emailTransporter } from '../services/email.service';
@@ -14,6 +15,34 @@ describe('Knowvia Admin-Controlled Account Creation & Onboarding Security', () =
     sendMailMock = jest
       .spyOn(emailTransporter, 'sendMail')
       .mockImplementation(async () => ({ messageId: 'test-message-id-12345' } as any));
+
+    // Ensure Admin exists, is active, and named NASCOM
+    await prisma.user.upsert({
+      where: { email: 'admin@knowvia.internal' },
+      update: { isActive: true, deletedAt: null, firstName: 'NASCOM', lastName: '' },
+      create: {
+        email: 'admin@knowvia.internal',
+        passwordHash: await bcrypt.hash('password123', 12),
+        firstName: 'NASCOM',
+        lastName: '',
+        role: 'ADMIN',
+        isActive: true,
+      },
+    });
+
+    // Ensure Student/Intern exists and is active for non-admin tests
+    await prisma.user.upsert({
+      where: { email: 'david.cyber@knowvia.internal' },
+      update: { isActive: true, deletedAt: null },
+      create: {
+        email: 'david.cyber@knowvia.internal',
+        passwordHash: await bcrypt.hash('password123', 12),
+        firstName: 'David',
+        lastName: 'Kim',
+        role: 'INTERN',
+        isActive: true,
+      },
+    });
 
     // 1. Obtain Admin JWT Token
     const adminLoginRes = await request(app)

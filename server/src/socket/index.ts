@@ -121,7 +121,7 @@ export const initSocket = (httpServer: HttpServer): Server => {
           },
           include: {
             sender: {
-              select: { id: true, firstName: true, lastName: true, role: true, avatarUrl: true },
+              select: { id: true, firstName: true, lastName: true, role: true },
             },
             replyTo: {
               select: {
