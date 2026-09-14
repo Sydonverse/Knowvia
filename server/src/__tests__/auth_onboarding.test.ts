@@ -30,15 +30,15 @@ describe('Knowvia Admin-Controlled Account Creation & Onboarding Security', () =
       },
     });
 
-    // Ensure Student/Intern exists and is active for non-admin tests
+    // Ensure ephemeral non-admin test user exists for non-admin guard tests
     await prisma.user.upsert({
-      where: { email: 'david.cyber@knowvia.internal' },
+      where: { email: 'test-ephemeral-guard-intern@knowvia.internal' },
       update: { isActive: true, deletedAt: null },
       create: {
-        email: 'david.cyber@knowvia.internal',
+        email: 'test-ephemeral-guard-intern@knowvia.internal',
         passwordHash: await bcrypt.hash('password123', 12),
-        firstName: 'David',
-        lastName: 'Kim',
+        firstName: 'Test',
+        lastName: 'Intern',
         role: 'INTERN',
         isActive: true,
       },
@@ -53,24 +53,24 @@ describe('Knowvia Admin-Controlled Account Creation & Onboarding Security', () =
     // 2. Obtain Student/Intern JWT Token (Non-Admin)
     const internLoginRes = await request(app)
       .post('/api/v1/auth/login')
-      .send({ email: 'david.cyber@knowvia.internal', password: 'password123' });
+      .send({ email: 'test-ephemeral-guard-intern@knowvia.internal', password: 'password123' });
     internToken = internLoginRes.body.token;
   });
 
   afterAll(async () => {
     sendMailMock.mockRestore();
-    // Clean up test records
+    // Clean up all ephemeral test records
     await prisma.onboardingInvitation.deleteMany({
-      where: { user: { email: { contains: 'test-onboarding' } } },
+      where: { user: { email: { contains: 'test-' } } },
     });
     await prisma.passwordResetToken.deleteMany({
-      where: { user: { email: { contains: 'test-onboarding' } } },
+      where: { user: { email: { contains: 'test-' } } },
     });
     await prisma.departmentMember.deleteMany({
-      where: { user: { email: { contains: 'test-onboarding' } } },
+      where: { user: { email: { contains: 'test-' } } },
     });
     await prisma.user.deleteMany({
-      where: { email: { contains: 'test-onboarding' } },
+      where: { email: { contains: 'test-' } },
     });
 
     await prisma.$disconnect();
