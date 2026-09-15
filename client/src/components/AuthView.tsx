@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, LogIn, Lock, Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Lock, Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 
 interface AuthViewProps {
@@ -64,7 +64,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
           </div>
           <h1 className="auth-brand-title">Knowvia</h1>
           <p className="auth-brand-subtitle">
-            Progressive Knowledge Repository & Learning Management Platform
+            Knowledge Repository & Learning Management Platform
           </p>
         </div>
 
@@ -166,24 +166,6 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
         ) : (
           /* ─── NORMAL SIGN IN VIEW ────────────────────────── */
           <>
-
-
-            <div style={{ marginBottom: '16px', textAlign: 'center' }}>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: 'var(--text-secondary)',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                }}
-              >
-                <LogIn size={16} color="var(--primary)" />
-                <span>Sign In with Your Credentials</span>
-              </div>
-            </div>
-
             {errorMsg && <div className="auth-error-banner">{errorMsg}</div>}
 
             <form onSubmit={handleSubmit} className="auth-form">
@@ -261,22 +243,6 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
                 {loading ? 'Authenticating...' : 'Sign In to Knowvia'}
               </button>
             </form>
-
-            <div
-              style={{
-                marginTop: '20px',
-                padding: '12px',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--bg-subtle)',
-                border: '1px solid var(--border-subtle)',
-                fontSize: '11px',
-                color: 'var(--text-muted)',
-                lineHeight: 1.5,
-                textAlign: 'center',
-              }}
-            >
-              <strong>Notice:</strong> Account creation is controlled by Knowvia Administrators. If you are a new tutor or intern, an invitation link will be sent to your email to set up your password.
-            </div>
           </>
         )}
       </div>
