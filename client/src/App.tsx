@@ -125,6 +125,7 @@ export const App: React.FC = () => {
         .register('/sw.js')
         .then((reg) => {
           console.log('Knowvia Service Worker registered:', reg.scope);
+          reg.update().catch(() => {});
           syncPushSubscription();
         })
         .catch((err) => {
