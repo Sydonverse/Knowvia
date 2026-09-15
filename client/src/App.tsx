@@ -17,6 +17,7 @@ import {
 } from './types';
 import { api } from './services/api';
 import { socketService } from './services/socket';
+import { urlBase64ToUint8Array } from './utils/push.utils';
 
 import { Navbar } from './components/Navbar';
 import { Sidebar, ActiveTab } from './components/Sidebar';
@@ -91,24 +92,53 @@ export const App: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstallPwa, setCanInstallPwa] = useState(false);
 
-  // 1. Initial PWA & Service Worker Setup
+  // Push Subscription Synchronization (stable callback)
+  const syncPushSubscription = useCallback(async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const existingSub = await reg.pushManager.getSubscription();
+      if (existingSub) {
+        setPushEnabled(true);
+        if (api.getToken()) {
+          const subData = JSON.parse(JSON.stringify(existingSub));
+          await api.notifications
+            .subscribePush({
+              endpoint: subData.endpoint,
+              keys: subData.keys,
+              userAgent: navigator.userAgent,
+            })
+            .catch(() => {});
+        }
+      } else {
+        setPushEnabled(false);
+      }
+    } catch (err) {
+      console.warn('Error checking push subscription state:', err);
+    }
+  }, []);
+
+  // 1. Initial PWA & Service Worker Setup (Runs strictly once on mount)
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js')
         .then((reg) => {
           console.log('Knowvia Service Worker registered:', reg.scope);
+          syncPushSubscription();
         })
         .catch((err) => {
           console.warn('Service Worker registration skipped:', err);
         });
     }
 
-    window.addEventListener('beforeinstallprompt', (e) => {
+    const onBeforeInstall = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
       setCanInstallPwa(true);
-    });
+    };
+
+    window.addEventListener('beforeinstallprompt', onBeforeInstall);
 
     // Fetch initial list of all departments for registration
     api.departments
@@ -119,7 +149,11 @@ export const App: React.FC = () => {
         }
       })
       .catch((err) => console.warn('Failed to fetch departments list:', err));
-  }, []);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
+    };
+  }, [syncPushSubscription]);
 
   const handleInstallPwa = async () => {
     if (!deferredPrompt) return;
@@ -133,11 +167,20 @@ export const App: React.FC = () => {
 
   // 2. Fetch User Profile on Mount
   const fetchCurrentUser = useCallback(async () => {
+    const token = api.getToken();
+    // Instant short-circuit: if no token exists, immediately show login screen without network delay
+    if (!token) {
+      setUser(null);
+      setLoadingUser(false);
+      return;
+    }
+
     setLoadingUser(true);
     try {
       const res = await api.auth.me();
       if (res.user) {
         setUser(res.user);
+        syncPushSubscription();
         const depts: DepartmentMemberContext[] = res.user.departments || [];
         setUserDepartments(depts);
 
@@ -156,7 +199,7 @@ export const App: React.FC = () => {
     } finally {
       setLoadingUser(false);
     }
-  }, []);
+  }, [syncPushSubscription]);
 
   useEffect(() => {
     fetchCurrentUser();
@@ -433,12 +476,19 @@ export const App: React.FC = () => {
     }
 
     try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        alert('Notification permission was not granted. Please allow notifications in your browser settings.');
+        return;
+      }
+
       const { publicKey } = await api.notifications.getVapidKey();
       const registration = await navigator.serviceWorker.ready;
+      const convertedKey = urlBase64ToUint8Array(publicKey);
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: publicKey,
+        applicationServerKey: convertedKey,
       });
 
       const subData = JSON.parse(JSON.stringify(subscription));
@@ -451,7 +501,34 @@ export const App: React.FC = () => {
       setPushEnabled(true);
       alert('✅ Push notifications enabled! You will receive instant class reminders and announcements.');
     } catch (err: any) {
+      console.error('Push enable error:', err);
       alert(err.message || 'Failed to enable push notifications');
+    }
+  };
+
+  const handleDisablePush = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        await api.notifications.unsubscribePush(subscription.endpoint).catch(() => {});
+        await subscription.unsubscribe();
+      }
+      setPushEnabled(false);
+      alert('Push notifications have been disabled on this device.');
+    } catch (err: any) {
+      console.error('Failed to disable push notifications:', err);
+      alert(err.message || 'Failed to disable push notifications');
+    }
+  };
+
+  const handleSendTestPush = async () => {
+    try {
+      const res = await api.notifications.sendTestPush();
+      console.log('Test push dispatched:', res);
+    } catch (err: any) {
+      alert(err.message || 'Failed to dispatch test push notification');
     }
   };
 
@@ -461,6 +538,7 @@ export const App: React.FC = () => {
     if (res.token) {
       api.setToken(res.token);
       setUser(res.user);
+      syncPushSubscription();
       const depts = res.user.departments || [];
       setUserDepartments(depts);
       if (depts.length > 0) {
@@ -475,6 +553,7 @@ export const App: React.FC = () => {
     if (res.token) {
       api.setToken(res.token);
       setUser(res.user);
+      syncPushSubscription();
       if (res.user.department) {
         const deptCtx: DepartmentMemberContext = {
           ...res.user.department,
@@ -487,7 +566,20 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Safely dissociate this device before clearing session so User A's private notifications do not leak
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          await api.notifications.dissociatePush(sub.endpoint).catch(() => {});
+        }
+      } catch (e) {
+        console.warn('Could not dissociate device during logout:', e);
+      }
+    }
+
     api.removeToken();
     setUser(null);
     setUserDepartments([]);
@@ -657,6 +749,8 @@ export const App: React.FC = () => {
         onMarkRead={handleMarkNotificationRead}
         onMarkAllRead={handleMarkAllNotificationsRead}
         onEnablePush={handleEnablePush}
+        onDisablePush={handleDisablePush}
+        onSendTestPush={handleSendTestPush}
         pushEnabled={pushEnabled}
         onNavigate={handleNavigate}
       />

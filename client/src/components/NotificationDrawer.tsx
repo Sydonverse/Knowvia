@@ -23,6 +23,8 @@ interface NotificationDrawerProps {
   onMarkRead: (id: string) => void;
   onMarkAllRead: () => void;
   onEnablePush: () => void;
+  onDisablePush?: () => void;
+  onSendTestPush?: () => void;
   pushEnabled: boolean;
   onNavigate: (tab: ActiveTab, targetId?: string) => void;
 }
@@ -35,6 +37,8 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
   onMarkRead,
   onMarkAllRead,
   onEnablePush,
+  onDisablePush,
+  onSendTestPush,
   pushEnabled,
   onNavigate,
 }) => {
@@ -107,13 +111,34 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
             <BellRing size={20} color="#4f46e5" />
           </div>
           <div className="push-content">
-            <div className="push-title">Mobile Push Notifications</div>
+            <div className="push-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>Mobile Push Notifications</span>
+              {pushEnabled && (
+                <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></span>
+                  Active
+                </span>
+              )}
+            </div>
             <div className="push-desc">
               {pushEnabled
-                ? 'Push alerts are active. You will receive real-time updates and 1-day class reminders.'
+                ? 'Push alerts are active on this device. You will receive instant class reminders and announcements.'
                 : 'Enable browser & mobile push alerts for announcements, new assignments, and upcoming class reminders.'}
             </div>
-            {!pushEnabled && (
+            {pushEnabled ? (
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
+                {onSendTestPush && (
+                  <button className="btn-secondary btn-sm" onClick={onSendTestPush} title="Send a test notification to verify device alerts">
+                    🔔 Send Test Push
+                  </button>
+                )}
+                {onDisablePush && (
+                  <button className="btn-outline btn-sm" style={{ color: '#ef4444', borderColor: '#fca5a5' }} onClick={onDisablePush} title="Disable push alerts on this device">
+                    Disable Alerts
+                  </button>
+                )}
+              </div>
+            ) : (
               <button className="btn-primary btn-sm mt-2" onClick={onEnablePush}>
                 Enable Push Alerts
               </button>

@@ -38,11 +38,14 @@ export const dispatchWebPushToUser = async (userId: string, payload: Notificatio
     const pushPayload = JSON.stringify({
       title: payload.title,
       body: payload.body,
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/icon-192x192.png',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/badge-72.png',
+      actionUrl: payload.actionUrl,
+      type: payload.type,
       data: {
         url: payload.actionUrl,
         type: payload.type,
+        departmentId: payload.departmentId || null,
       },
     });
 
@@ -61,7 +64,9 @@ export const dispatchWebPushToUser = async (userId: string, payload: Notificatio
       } catch (err: any) {
         // If subscription is 410 Gone or 404 Not Found, delete it
         if (err.statusCode === 410 || err.statusCode === 404) {
-          await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
+          try {
+            await prisma.pushSubscription.delete({ where: { id: sub.id } });
+          } catch (_) {}
         }
       }
     }

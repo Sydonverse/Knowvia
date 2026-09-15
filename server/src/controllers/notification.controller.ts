@@ -116,6 +116,27 @@ export const subscribePush = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
+export const dissociatePushDevice = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { endpoint } = req.body;
+    if (!endpoint) {
+      res.status(400).json({ error: 'Endpoint is required' });
+      return;
+    }
+
+    // Safely dissociate this device from any user account without destroying push capability
+    await prisma.pushSubscription.updateMany({
+      where: { endpoint },
+      data: { userId: null },
+    });
+
+    res.json({ message: 'Device dissociated successfully' });
+  } catch (error) {
+    console.error('Dissociate push error:', error);
+    res.status(500).json({ error: 'Failed to dissociate device' });
+  }
+};
+
 export const unsubscribePush = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { endpoint } = req.body;
@@ -129,5 +150,35 @@ export const unsubscribePush = async (req: AuthRequest, res: Response): Promise<
   } catch (error) {
     console.error('Unsubscribe push error:', error);
     res.status(500).json({ error: 'Failed to unregister push subscription' });
+  }
+};
+
+export const sendTestPushNotification = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    // Allow in non-production environments for any authenticated user, or in production for ADMINs
+    if (process.env.NODE_ENV === 'production' && user.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Test push notifications are restricted to administrators in production' });
+      return;
+    }
+
+    const { notifyUser } = await import('../services/notification.service');
+
+    await notifyUser(user.id, {
+      title: 'Knowvia Test Alert',
+      body: 'Push notifications are working properly on this device!',
+      actionUrl: '/',
+      type: 'TEST',
+    });
+
+    res.json({ message: 'Test notification dispatched to your subscribed device(s)' });
+  } catch (error) {
+    console.error('Send test push error:', error);
+    res.status(500).json({ error: 'Failed to send test push notification' });
   }
 };

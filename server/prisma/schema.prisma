@@ -209,14 +209,14 @@ model Notification {
 
 model PushSubscription {
   id        String   @id @default(uuid())
-  userId    String
+  userId    String?
   endpoint  String   @unique
   p256dh    String
   auth      String
   userAgent String?
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model OnboardingInvitation {

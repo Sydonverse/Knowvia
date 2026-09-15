@@ -1,7 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 class ApiClient {
-  private getToken(): string | null {
+  public getToken(): string | null {
     return localStorage.getItem('knowvia_auth_token') || localStorage.getItem('nexus_auth_token');
   }
 
@@ -169,6 +169,10 @@ class ApiClient {
       this.request<any>('/notifications/subscribe', { method: 'POST', body: JSON.stringify(data) }),
     unsubscribePush: (endpoint: string) =>
       this.request<any>('/notifications/unsubscribe', { method: 'POST', body: JSON.stringify({ endpoint }) }),
+    dissociatePush: (endpoint: string) =>
+      this.request<any>('/notifications/dissociate', { method: 'POST', body: JSON.stringify({ endpoint }) }),
+    sendTestPush: () =>
+      this.request<{ message: string }>('/notifications/test-push', { method: 'POST' }),
   };
 }
 
