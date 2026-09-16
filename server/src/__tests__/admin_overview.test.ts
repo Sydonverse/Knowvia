@@ -143,4 +143,18 @@ describe('Knowvia Organization-Wide Admin Overview Security & Metrics API', () =
       expect(Array.isArray(res.body.recentActivity)).toBe(true);
     });
   });
+
+  afterAll(async () => {
+    await prisma.user.deleteMany({
+      where: {
+        email: {
+          in: [
+            'test-overview-tutor@knowvia.internal',
+            'test-overview-intern@knowvia.internal',
+          ],
+        },
+      },
+    });
+    await prisma.$disconnect();
+  });
 });
