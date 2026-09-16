@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   GraduationCap,
   Users,
+  ArrowLeft,
 } from 'lucide-react';
 import { DepartmentMemberContext, User } from '../types';
 
@@ -27,6 +28,7 @@ interface SidebarProps {
   activeDept: DepartmentMemberContext | null;
   currentUser?: User | null;
   unreadCount?: number;
+  onSelectDept?: (dept: DepartmentMemberContext | null) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -34,61 +36,90 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
   activeDept,
   currentUser,
+  onSelectDept,
 }) => {
-  const isTutorOrAdmin = currentUser?.role === 'TUTOR' || currentUser?.role === 'ADMIN';
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const isTutorOrAdmin = currentUser?.role === 'TUTOR' || isAdmin;
 
-  // Base navigation items
-  const navItems = [
-    {
-      id: 'dashboard' as ActiveTab,
-      label: 'Dashboard',
-      icon: LayoutDashboard,
-      description: 'Overview & schedules',
-    },
-    {
-      id: 'schedule' as ActiveTab,
-      label: isTutorOrAdmin ? 'Class Scheduler' : 'Class Schedule',
-      icon: Calendar,
-      description: isTutorOrAdmin ? 'Flexible class timetable' : 'Class timetable',
-    },
-    {
-      id: 'materials' as ActiveTab,
-      label: isTutorOrAdmin ? 'Learning Materials & Files' : 'Learning Materials',
-      icon: BookOpen,
-      description: isTutorOrAdmin ? 'Share educational files' : 'Curated study materials',
-    },
-    {
-      id: 'assignments' as ActiveTab,
-      label: isTutorOrAdmin ? 'Assignment Management' : 'Assignments',
-      icon: ClipboardCheck,
-      description: isTutorOrAdmin ? 'Create & review work' : 'Submit & track progress',
-    },
-  ];
+  // Generate role and context-aware navigation items
+  let navItems: Array<{
+    id: ActiveTab;
+    label: string;
+    icon: any;
+    description: string;
+  }> = [];
 
-  // Announcements tab is available for everyone
-  navItems.push({
-    id: 'announcements' as ActiveTab,
-    label: 'Announcements',
-    icon: Megaphone,
-    description: isTutorOrAdmin ? 'Broadcast updates' : 'Department updates',
-  });
+  if (isAdmin && !activeDept) {
+    // Admin in Organization Overview mode
+    navItems = [
+      {
+        id: 'dashboard',
+        label: 'Overview',
+        icon: LayoutDashboard,
+        description: 'Command center & stats',
+      },
+      {
+        id: 'users',
+        label: 'User Management',
+        icon: Users,
+        description: 'Onboard & manage users',
+      },
+      {
+        id: 'announcements',
+        label: 'Announcements',
+        icon: Megaphone,
+        description: 'Broadcast updates',
+      },
+    ];
+  } else {
+    // Department workspace mode (or Tutor/Intern mode)
+    navItems = [
+      {
+        id: 'dashboard',
+        label: isAdmin ? 'Department Dashboard' : 'Dashboard',
+        icon: LayoutDashboard,
+        description: 'Overview & schedules',
+      },
+      {
+        id: 'schedule',
+        label: isTutorOrAdmin ? 'Class Scheduler' : 'Class Schedule',
+        icon: Calendar,
+        description: isTutorOrAdmin ? 'Flexible class timetable' : 'Class timetable',
+      },
+      {
+        id: 'materials',
+        label: isTutorOrAdmin ? 'Learning Materials & Files' : 'Learning Materials',
+        icon: BookOpen,
+        description: isTutorOrAdmin ? 'Share educational files' : 'Curated study materials',
+      },
+      {
+        id: 'assignments',
+        label: isTutorOrAdmin ? 'Assignment Management' : 'Assignments',
+        icon: ClipboardCheck,
+        description: isTutorOrAdmin ? 'Create & review work' : 'Submit & track progress',
+      },
+      {
+        id: 'announcements',
+        label: 'Announcements',
+        icon: Megaphone,
+        description: isTutorOrAdmin ? 'Broadcast updates' : 'Department updates',
+      },
+      {
+        id: 'chat',
+        label: 'Department Chat',
+        icon: MessageSquare,
+        description: 'Real-time discussion',
+      },
+    ];
 
-  // Chat is available for all
-  navItems.push({
-    id: 'chat' as ActiveTab,
-    label: 'Department Chat',
-    icon: MessageSquare,
-    description: 'Real-time discussion',
-  });
-
-  // Admin User & Onboarding Management tab
-  if (currentUser?.role === 'ADMIN') {
-    navItems.push({
-      id: 'users' as ActiveTab,
-      label: 'User Management',
-      icon: Users,
-      description: 'Onboard & manage users',
-    });
+    if (isAdmin) {
+      navItems.push({
+        id: 'users',
+        label: 'User Management',
+        icon: Users,
+        description: 'Onboard & manage users',
+      });
+    }
   }
 
   const roleLabel =
@@ -98,21 +129,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ? 'Department Tutor'
       : 'Intern / Student';
 
+  const deptColor = activeDept?.colorHex || '#6366f1';
+
   return (
     <aside className="sidebar-container">
-      {/* Active Department Workspace Banner */}
+      {/* Workspace Banner */}
       <div
         className="sidebar-dept-card"
         style={{
-          borderColor: `${activeDept?.colorHex || '#4f46e5'}30`,
-          background: `${activeDept?.colorHex || '#4f46e5'}08`,
+          borderColor: `${deptColor}30`,
+          background: `${deptColor}08`,
         }}
       >
         <div className="dept-card-top">
           <div className="status-online-dot"></div>
-          <span className="dept-space-label">DEPARTMENT WORKSPACE</span>
+          <span className="dept-space-label">
+            {isAdmin && !activeDept ? 'ORGANIZATION SCOPE' : 'DEPARTMENT WORKSPACE'}
+          </span>
         </div>
-        <div className="dept-card-title">{activeDept?.name || 'Department'}</div>
+        <div className="dept-card-title">
+          {isAdmin && !activeDept ? 'Knowvia Platform' : activeDept?.name || 'Department'}
+        </div>
         <div className="dept-badge-role">
           {currentUser?.role === 'ADMIN' ? (
             <ShieldCheck size={13} color="#4f46e5" />
@@ -121,6 +158,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
           <span>{roleLabel}</span>
         </div>
+
+        {/* Quick return button for Admin inside a department */}
+        {isAdmin && activeDept && onSelectDept && (
+          <button
+            className="sidebar-return-org-btn"
+            onClick={() => onSelectDept(null)}
+            title="Return to Organization Overview"
+          >
+            <ArrowLeft size={13} />
+            <span>Organization Overview</span>
+          </button>
+        )}
       </div>
 
       {/* Navigation Links */}
@@ -136,8 +185,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               style={
                 isActive
                   ? {
-                      borderColor: activeDept?.colorHex || '#4f46e5',
-                      background: `${activeDept?.colorHex || '#4f46e5'}10`,
+                      borderColor: deptColor,
+                      background: `${deptColor}10`,
                       color: 'var(--text-primary)',
                     }
                   : {}
@@ -148,8 +197,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 style={
                   isActive
                     ? {
-                        background: `${activeDept?.colorHex || '#4f46e5'}20`,
-                        color: activeDept?.colorHex || '#4f46e5',
+                        background: `${deptColor}20`,
+                        color: deptColor,
                       }
                     : {}
                 }
@@ -163,7 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {isActive && (
                 <div
                   className="active-indicator-bar"
-                  style={{ background: activeDept?.colorHex || '#4f46e5' }}
+                  style={{ background: deptColor }}
                 />
               )}
             </button>
@@ -184,3 +233,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </aside>
   );
 };
+

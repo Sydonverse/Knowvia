@@ -6,6 +6,7 @@ import {
   listUsers,
   resendInvitation,
   deleteUser,
+  getAdminOverview,
 } from '../controllers/admin.controller';
 
 const router = Router();
@@ -14,6 +15,7 @@ const router = Router();
 router.use(authenticate);
 router.use(requireRoles(['ADMIN']));
 
+router.get('/overview', getAdminOverview);
 router.post('/users', createUser);
 router.get('/users', listUsers);
 router.post('/users/:id/resend-invitation', resendInvitation);

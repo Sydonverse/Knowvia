@@ -9,8 +9,9 @@ import {
   Box,
   Palette,
   ChevronDown,
-  User as UserIcon,
+  User as _UserIcon,
   BookOpen,
+  Building,
 } from 'lucide-react';
 import { User, DepartmentMemberContext, AppNotification } from '../types';
 import { UserAvatar } from './UserAvatar';
@@ -20,7 +21,7 @@ interface NavbarProps {
   user: User | null;
   activeDept: DepartmentMemberContext | null;
   departments: DepartmentMemberContext[];
-  onSelectDept: (dept: DepartmentMemberContext) => void;
+  onSelectDept: (dept: DepartmentMemberContext | null) => void;
   notifications: AppNotification[];
   unreadCount: number;
   onOpenNotifications: () => void;
@@ -81,41 +82,57 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Department Badge / Switcher */}
-        {activeDept && (
+        {/* Organization Overview / Department Switcher */}
+        {user?.role === 'ADMIN' ? (
           <div className="dept-switcher-dropdown">
             <button
               className="dept-pill-btn"
-              onClick={() => {
-                if (user?.role === 'ADMIN' && departments.length > 1) {
-                  setShowDeptMenu(!showDeptMenu);
-                }
-              }}
+              onClick={() => setShowDeptMenu(!showDeptMenu)}
               style={{
-                borderColor: `${activeDept.colorHex}40`,
-                background: `${activeDept.colorHex}10`,
-                cursor: user?.role === 'ADMIN' && departments.length > 1 ? 'pointer' : 'default',
+                borderColor: activeDept ? `${activeDept.colorHex}40` : '#6366f140',
+                background: activeDept ? `${activeDept.colorHex}10` : '#6366f110',
+                cursor: 'pointer',
               }}
               title={
-                user?.role === 'ADMIN'
-                  ? 'Click to switch department workspace'
-                  : `Enrolled Department: ${activeDept.name}`
+                activeDept
+                  ? `Department: ${activeDept.name} – Click to switch or return to Organization Overview`
+                  : 'Organization Overview – Click to select a department workspace'
               }
             >
-              <span style={{ color: activeDept.colorHex }}>{getDeptIcon(activeDept.icon)}</span>
-              <span className="dept-name-text">{activeDept.name}</span>
-              {user?.role === 'ADMIN' && departments.length > 1 && (
-                <ChevronDown size={14} className="text-muted" />
+              {activeDept ? (
+                <span style={{ color: activeDept.colorHex }}>{getDeptIcon(activeDept.icon)}</span>
+              ) : (
+                <Building size={16} color="#6366f1" />
               )}
+              <span className="dept-name-text">
+                {activeDept ? activeDept.name : 'Organization Overview'}
+              </span>
+              <ChevronDown size={14} className="text-muted" />
             </button>
 
-            {showDeptMenu && user?.role === 'ADMIN' && departments.length > 1 && (
+            {showDeptMenu && (
               <div className="dropdown-menu">
-                <div className="dropdown-header">Administrator: Switch Department</div>
+                <div className="dropdown-header">ADMINISTRATION SCOPE</div>
+                <button
+                  className={`dropdown-item ${!activeDept ? 'active' : ''}`}
+                  onClick={() => {
+                    onSelectDept(null);
+                    setShowDeptMenu(false);
+                  }}
+                >
+                  <Building size={16} color="#6366f1" />
+                  <div style={{ textAlign: 'left' }}>
+                    <div className="dropdown-item-title">Organization Overview</div>
+                    <div className="dropdown-item-desc">Platform-wide statistics & command center</div>
+                  </div>
+                </button>
+
+                <div className="dropdown-divider"></div>
+                <div className="dropdown-header">DEPARTMENT WORKSPACES</div>
                 {departments.map((dept) => (
                   <button
                     key={dept.id}
-                    className={`dropdown-item ${dept.id === activeDept.id ? 'active' : ''}`}
+                    className={`dropdown-item ${activeDept && dept.id === activeDept.id ? 'active' : ''}`}
                     onClick={() => {
                       onSelectDept(dept);
                       setShowDeptMenu(false);
@@ -124,13 +141,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span style={{ color: dept.colorHex }}>{getDeptIcon(dept.icon)}</span>
                     <div style={{ textAlign: 'left' }}>
                       <div className="dropdown-item-title">{dept.name}</div>
-                      <div className="dropdown-item-desc">{dept.description?.slice(0, 50)}...</div>
+                      <div className="dropdown-item-desc">{dept.description?.slice(0, 45)}...</div>
                     </div>
                   </button>
                 ))}
               </div>
             )}
           </div>
+        ) : (
+          activeDept && (
+            <div className="dept-switcher-dropdown">
+              <button
+                className="dept-pill-btn"
+                style={{
+                  borderColor: `${activeDept.colorHex}40`,
+                  background: `${activeDept.colorHex}10`,
+                  cursor: 'default',
+                }}
+                title={`Enrolled Department: ${activeDept.name}`}
+              >
+                <span style={{ color: activeDept.colorHex }}>{getDeptIcon(activeDept.icon)}</span>
+                <span className="dept-name-text">{activeDept.name}</span>
+              </button>
+            </div>
+          )
         )}
       </div>
 

@@ -346,3 +346,317 @@ export const deleteUser = async (req: AuthRequest, res: Response): Promise<void>
     res.status(500).json({ error: 'Failed to remove user account.' });
   }
 };
+
+/**
+ * GET /api/v1/admin/overview
+ * Returns organization-wide aggregated metrics, department breakdowns,
+ * upcoming cross-department sessions, attention items, and recent real activity.
+ */
+export const getAdminOverview = async (_req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const now = new Date();
+
+    // 1. Organization Summary Counts
+    const [
+      totalActiveUsers,
+      activeInterns,
+      activeTutors,
+      activeDepartments,
+      pendingOnboardingCount,
+      pendingSubmissionsCount,
+      upcomingSessionsCount,
+      totalMaterialsCount,
+      activeAssignmentsCount,
+    ] = await Promise.all([
+      prisma.user.count({ where: { deletedAt: null, isActive: true } }),
+      prisma.user.count({ where: { deletedAt: null, isActive: true, role: 'INTERN' } }),
+      prisma.user.count({ where: { deletedAt: null, isActive: true, role: 'TUTOR' } }),
+      prisma.department.count({ where: { isActive: true } }),
+      prisma.onboardingInvitation.count({
+        where: {
+          usedAt: null,
+          expiresAt: { gte: now },
+          user: { isActive: false, deletedAt: null },
+        },
+      }),
+      prisma.submission.count({
+        where: {
+          status: { in: ['SUBMITTED', 'IN_REVIEW'] },
+        },
+      }),
+      prisma.classSchedule.count({
+        where: {
+          endTime: { gte: now },
+        },
+      }),
+      prisma.material.count(),
+      prisma.assignment.count({
+        where: {
+          status: 'OPEN',
+        },
+      }),
+    ]);
+
+    // 2. Department Breakdown
+    const departments = await prisma.department.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        icon: true,
+        colorHex: true,
+        members: {
+          where: { status: 'APPROVED', user: { deletedAt: null, isActive: true } },
+          select: { role: true },
+        },
+        schedules: {
+          where: { endTime: { gte: now } },
+          select: { id: true },
+        },
+        assignments: {
+          where: { status: 'OPEN' },
+          select: { id: true },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    const departmentStats = departments.map((dept) => {
+      const interns = dept.members.filter((m) => m.role === 'INTERN').length;
+      const tutors = dept.members.filter((m) => m.role === 'TUTOR').length;
+      return {
+        id: dept.id,
+        name: dept.name,
+        slug: dept.slug,
+        description: dept.description,
+        icon: dept.icon,
+        colorHex: dept.colorHex,
+        internCount: interns,
+        tutorCount: tutors,
+        upcomingSessionsCount: dept.schedules.length,
+        activeAssignmentsCount: dept.assignments.length,
+        status: 'Active',
+      };
+    });
+
+    // 3. Organization-wide Upcoming Sessions (next 6 upcoming)
+    const upcomingSessions = await prisma.classSchedule.findMany({
+      where: {
+        endTime: { gte: now },
+      },
+      orderBy: { startTime: 'asc' },
+      take: 6,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        location: true,
+        meetingLink: true,
+        department: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            colorHex: true,
+            icon: true,
+          },
+        },
+        scheduler: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    // 4. Requires Attention items
+    const attentionItems: Array<{
+      id: string;
+      type: 'ONBOARDING' | 'SUBMISSION' | 'SESSION';
+      title: string;
+      description: string;
+      count: number;
+      actionText: string;
+      actionTab: string;
+    }> = [];
+
+    if (pendingOnboardingCount > 0) {
+      attentionItems.push({
+        id: 'attention-onboarding',
+        type: 'ONBOARDING',
+        title: `${pendingOnboardingCount} Pending Onboarding Invitation${pendingOnboardingCount > 1 ? 's' : ''}`,
+        description: 'Users have received onboarding links and need to complete setup.',
+        count: pendingOnboardingCount,
+        actionText: 'Manage Users',
+        actionTab: 'users',
+      });
+    }
+
+    if (pendingSubmissionsCount > 0) {
+      attentionItems.push({
+        id: 'attention-submissions',
+        type: 'SUBMISSION',
+        title: `${pendingSubmissionsCount} Assignment Submission${pendingSubmissionsCount > 1 ? 's' : ''} Awaiting Review`,
+        description: 'Student submissions across departments are pending evaluation.',
+        count: pendingSubmissionsCount,
+        actionText: 'View Submissions',
+        actionTab: 'assignments',
+      });
+    }
+
+    // 5. Recent Activity Feed (real events from DB timestamps)
+    const [recentUsers, recentSubmissions, recentMaterials, recentSchedules] = await Promise.all([
+      prisma.user.findMany({
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        take: 4,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+          departmentMemberships: {
+            take: 1,
+            select: { department: { select: { name: true, slug: true, colorHex: true } } },
+          },
+        },
+      }),
+      prisma.submission.findMany({
+        orderBy: { submittedAt: 'desc' },
+        take: 4,
+        select: {
+          id: true,
+          submittedAt: true,
+          submitter: { select: { firstName: true, lastName: true } },
+          assignment: {
+            select: {
+              title: true,
+              department: { select: { name: true, slug: true, colorHex: true } },
+            },
+          },
+        },
+      }),
+      prisma.material.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 4,
+        select: {
+          id: true,
+          title: true,
+          createdAt: true,
+          uploader: { select: { firstName: true, lastName: true } },
+          department: { select: { name: true, slug: true, colorHex: true } },
+        },
+      }),
+      prisma.classSchedule.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 4,
+        select: {
+          id: true,
+          title: true,
+          createdAt: true,
+          scheduler: { select: { firstName: true, lastName: true } },
+          department: { select: { name: true, slug: true, colorHex: true } },
+        },
+      }),
+    ]);
+
+    const activityFeed: Array<{
+      id: string;
+      type: 'USER_JOINED' | 'SUBMISSION' | 'MATERIAL' | 'SCHEDULE';
+      title: string;
+      detail: string;
+      departmentName: string;
+      departmentSlug: string;
+      departmentColor: string;
+      timestamp: Date;
+    }> = [];
+
+    recentUsers.forEach((u) => {
+      const dept = u.departmentMemberships[0]?.department;
+      activityFeed.push({
+        id: `act-user-${u.id}`,
+        type: 'USER_JOINED',
+        title: `${u.firstName} ${u.lastName}`.trim() || 'New User',
+        detail: u.isActive ? `Joined as ${u.role}` : `Provisioned as ${u.role} (Pending Onboarding)`,
+        departmentName: dept?.name || 'All Departments',
+        departmentSlug: dept?.slug || '',
+        departmentColor: dept?.colorHex || '#6366f1',
+        timestamp: u.createdAt,
+      });
+    });
+
+    recentSubmissions.forEach((s) => {
+      activityFeed.push({
+        id: `act-sub-${s.id}`,
+        type: 'SUBMISSION',
+        title: `${s.submitter.firstName} ${s.submitter.lastName}`.trim(),
+        detail: `Submitted "${s.assignment.title}"`,
+        departmentName: s.assignment.department.name,
+        departmentSlug: s.assignment.department.slug,
+        departmentColor: s.assignment.department.colorHex,
+        timestamp: s.submittedAt,
+      });
+    });
+
+    recentMaterials.forEach((m) => {
+      activityFeed.push({
+        id: `act-mat-${m.id}`,
+        type: 'MATERIAL',
+        title: `${m.uploader.firstName} ${m.uploader.lastName}`.trim(),
+        detail: `Uploaded "${m.title}"`,
+        departmentName: m.department.name,
+        departmentSlug: m.department.slug,
+        departmentColor: m.department.colorHex,
+        timestamp: m.createdAt,
+      });
+    });
+
+    recentSchedules.forEach((sc) => {
+      activityFeed.push({
+        id: `act-sched-${sc.id}`,
+        type: 'SCHEDULE',
+        title: `${sc.scheduler.firstName} ${sc.scheduler.lastName}`.trim(),
+        detail: `Scheduled "${sc.title}"`,
+        departmentName: sc.department.name,
+        departmentSlug: sc.department.slug,
+        departmentColor: sc.department.colorHex,
+        timestamp: sc.createdAt,
+      });
+    });
+
+    // Sort combined activities descending by timestamp and take top 6
+    activityFeed.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const topActivities = activityFeed.slice(0, 6);
+
+    res.json({
+      metrics: {
+        totalUsers: totalActiveUsers,
+        activeInterns,
+        activeTutors,
+        activeDepartments,
+        pendingOnboardingCount,
+        pendingSubmissionsCount,
+        upcomingSessionsCount,
+        totalMaterialsCount,
+        activeAssignmentsCount,
+      },
+      departments: departmentStats,
+      upcomingSessions,
+      attentionItems,
+      recentActivity: topActivities,
+    });
+  } catch (error) {
+    console.error('getAdminOverview error:', error);
+    res.status(500).json({ error: 'Failed to retrieve admin organization overview data.' });
+  }
+};
+

@@ -32,6 +32,7 @@ import { AuthView } from './components/AuthView';
 import { OnboardingView } from './components/OnboardingView';
 import { ResetPasswordView } from './components/ResetPasswordView';
 import { AdminUsersView } from './components/AdminUsersView';
+import { AdminOverviewView } from './components/AdminOverviewView';
 
 import {
   UploadMaterialModal,
@@ -186,10 +187,20 @@ export const App: React.FC = () => {
         setUserDepartments(depts);
 
         if (depts.length > 0) {
-          // Restore saved department or default to first
-          const savedSlug = localStorage.getItem('knowvia_active_dept_slug');
-          const found = depts.find((d) => d.slug === savedSlug);
-          setActiveDept(found || depts[0]);
+          if (res.user.role === 'ADMIN') {
+            const savedSlug = localStorage.getItem('knowvia_active_dept_slug');
+            if (savedSlug && savedSlug !== 'organization') {
+              const found = depts.find((d) => d.slug === savedSlug);
+              setActiveDept(found || null);
+            } else {
+              setActiveDept(null);
+            }
+          } else {
+            // Restore saved department or default to first for tutors and interns
+            const savedSlug = localStorage.getItem('knowvia_active_dept_slug');
+            const found = depts.find((d) => d.slug === savedSlug);
+            setActiveDept(found || depts[0]);
+          }
         }
       } else {
         setUser(null);
@@ -239,7 +250,16 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!user || !activeDept) return;
+    if (!user) return;
+
+    if (!activeDept) {
+      // Connect WebSocket and load notifications for organization view
+      const token =
+        localStorage.getItem('knowvia_auth_token') || localStorage.getItem('nexus_auth_token');
+      socketService.connect(token || '');
+      fetchNotifications();
+      return;
+    }
 
     loadDepartmentData(activeDept.slug);
     fetchNotifications();
@@ -337,10 +357,16 @@ export const App: React.FC = () => {
   }, [user, activeDept, loadDepartmentData, fetchNotifications]);
 
   // 4. Department Switch Handler (Admin only or profile refresh)
-  const handleSelectDept = (dept: DepartmentMemberContext) => {
-    setActiveDept(dept);
-    localStorage.setItem('knowvia_active_dept_slug', dept.slug);
-    loadDepartmentData(dept.slug);
+  const handleSelectDept = (dept: DepartmentMemberContext | null) => {
+    if (dept) {
+      setActiveDept(dept);
+      localStorage.setItem('knowvia_active_dept_slug', dept.slug);
+      loadDepartmentData(dept.slug);
+    } else {
+      setActiveDept(null);
+      localStorage.setItem('knowvia_active_dept_slug', 'organization');
+      setActiveTab('dashboard');
+    }
   };
 
   // 5. Navigation & Deep-Linking
@@ -431,8 +457,11 @@ export const App: React.FC = () => {
   };
 
   const handleCreateAnnouncement = async (data: any) => {
-    if (!activeDept) return;
-    const res = await api.announcements.create(activeDept.slug, data);
+    const slug = activeDept?.slug || userDepartments[0]?.slug || 'cybersecurity';
+    const res = await api.announcements.create(slug, {
+      ...data,
+      isGlobal: user?.role === 'ADMIN' ? (data.isGlobal ?? true) : false,
+    });
     if (res.announcement) {
       setAnnouncements((prev) =>
         prev.some((a) => a.id === res.announcement.id) ? prev : [res.announcement, ...prev]
@@ -542,9 +571,16 @@ export const App: React.FC = () => {
       syncPushSubscription();
       const depts = res.user.departments || [];
       setUserDepartments(depts);
-      if (depts.length > 0) {
+      if (res.user.role === 'ADMIN') {
+        // Administrator starts at Organization Overview by default
+        setActiveDept(null);
+        localStorage.setItem('knowvia_active_dept_slug', 'organization');
+        setActiveTab('dashboard');
+      } else if (depts.length > 0) {
+        // Tutors and interns remain department-scoped
         setActiveDept(depts[0]);
         localStorage.setItem('knowvia_active_dept_slug', depts[0].slug);
+        setActiveTab('dashboard');
       }
     }
   };
@@ -653,12 +689,22 @@ export const App: React.FC = () => {
           activeDept={activeDept}
           currentUser={user}
           unreadCount={unreadCount}
+          onSelectDept={handleSelectDept}
         />
 
         {/* Main Workspace Body */}
         <main className="main-content-viewport">
           {activeTab === 'users' && user.role === 'ADMIN' ? (
             <AdminUsersView availableDepartments={availableDepartments} currentUserId={user.id} />
+          ) : !activeDept && user.role === 'ADMIN' && activeTab === 'dashboard' ? (
+            <AdminOverviewView
+              user={user}
+              departments={userDepartments}
+              onSelectDept={handleSelectDept}
+              onNavigate={handleNavigate}
+              onOpenCreateUser={() => handleNavigate('users')}
+              onOpenCreateAnnouncement={() => setShowCreateAnnouncementModal(true)}
+            />
           ) : activeDept ? (
             <>
               {activeTab === 'dashboard' && (
@@ -732,6 +778,16 @@ export const App: React.FC = () => {
                 />
               )}
             </>
+          ) : !activeDept && user.role === 'ADMIN' && activeTab === 'announcements' && userDepartments.length > 0 ? (
+            <AnnouncementsView
+              announcements={announcements}
+              activeDept={userDepartments[0]}
+              isTutorOrAdmin={isTutorOrAdmin}
+              onOpenCreateModal={() => setShowCreateAnnouncementModal(true)}
+              onDeleteAnnouncement={handleDeleteAnnouncement}
+              onClearAnnouncements={handleClearAnnouncements}
+              onNavigate={handleNavigate}
+            />
           ) : (
             <div className="empty-state-card mt-8">
               <h3>No Department Selected</h3>
@@ -757,6 +813,16 @@ export const App: React.FC = () => {
       />
 
       {/* Modals for Tutors/Admin */}
+      {showCreateAnnouncementModal && (
+        <CreateAnnouncementModal
+          isOpen={showCreateAnnouncementModal}
+          onClose={() => setShowCreateAnnouncementModal(false)}
+          onSubmit={handleCreateAnnouncement}
+          activeDept={activeDept || userDepartments[0]}
+          isAdmin={user.role === 'ADMIN'}
+        />
+      )}
+
       {activeDept && (
         <>
           <UploadMaterialModal
@@ -778,14 +844,6 @@ export const App: React.FC = () => {
             onClose={() => setShowCreateAssignmentModal(false)}
             onSubmit={handleCreateAssignment}
             activeDept={activeDept}
-          />
-
-          <CreateAnnouncementModal
-            isOpen={showCreateAnnouncementModal}
-            onClose={() => setShowCreateAnnouncementModal(false)}
-            onSubmit={handleCreateAnnouncement}
-            activeDept={activeDept}
-            isAdmin={user.role === 'ADMIN'}
           />
         </>
       )}

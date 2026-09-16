@@ -1,3 +1,5 @@
+import { AdminOverviewData } from '../types';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 class ApiClient {
@@ -79,6 +81,7 @@ class ApiClient {
 
   // Admin Management
   public admin = {
+    getOverview: () => this.request<AdminOverviewData>('/admin/overview'),
     createUser: (data: {
       email: string;
       firstName: string;

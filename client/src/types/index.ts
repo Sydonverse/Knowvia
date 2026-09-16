@@ -221,3 +221,82 @@ export interface AppNotification {
     colorHex: string;
   } | null;
 }
+
+export interface AdminOverviewMetrics {
+  totalUsers: number;
+  activeInterns: number;
+  activeTutors: number;
+  activeDepartments: number;
+  pendingOnboardingCount: number;
+  pendingSubmissionsCount: number;
+  upcomingSessionsCount: number;
+  totalMaterialsCount: number;
+  activeAssignmentsCount: number;
+}
+
+export interface AdminDepartmentStat {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  icon: string;
+  colorHex: string;
+  internCount: number;
+  tutorCount: number;
+  upcomingSessionsCount: number;
+  activeAssignmentsCount: number;
+  status: string;
+}
+
+export interface AdminUpcomingSession {
+  id: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  meetingLink?: string | null;
+  department: {
+    id: string;
+    name: string;
+    slug: string;
+    colorHex: string;
+    icon: string;
+  };
+  scheduler?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+  };
+}
+
+export interface AdminAttentionItem {
+  id: string;
+  type: 'ONBOARDING' | 'SUBMISSION' | 'SESSION';
+  title: string;
+  description: string;
+  count: number;
+  actionText: string;
+  actionTab: string;
+}
+
+export interface AdminActivityItem {
+  id: string;
+  type: 'USER_JOINED' | 'SUBMISSION' | 'MATERIAL' | 'SCHEDULE';
+  title: string;
+  detail: string;
+  departmentName: string;
+  departmentSlug: string;
+  departmentColor: string;
+  timestamp: string;
+}
+
+export interface AdminOverviewData {
+  metrics: AdminOverviewMetrics;
+  departments: AdminDepartmentStat[];
+  upcomingSessions: AdminUpcomingSession[];
+  attentionItems: AdminAttentionItem[];
+  recentActivity: AdminActivityItem[];
+}
+
