@@ -11,7 +11,6 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
   ArrowRight,
   RefreshCw,
   Plus,
@@ -174,13 +173,9 @@ export const AdminOverviewView: React.FC<AdminOverviewViewProps> = ({
       {/* Compact Organization Hero Greeting */}
       <div className="hero-banner admin-org-hero">
         <div className="hero-content">
-          <div className="hero-badge admin-hero-badge">
-            <Sparkles size={14} />
-            <span>Organization Command Center</span>
-          </div>
           <h1 className="hero-title">{getGreeting(user.firstName || 'Administrator')}</h1>
           <p className="hero-subtitle">
-            Here's what's happening across Knowvia today. Oversee all departments, review real-time activity, and manage platform users.
+            Here's what's happening across Knowvia today.
           </p>
 
           <div className="hero-actions admin-quick-actions-row">
