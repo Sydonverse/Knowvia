@@ -44,6 +44,9 @@ interface AdminOverviewViewProps {
   onOpenCreateAnnouncement?: () => void;
 }
 
+// Module-level in-memory cache for instant SWR renders
+let cachedOverviewData: AdminOverviewData | null = null;
+
 export const AdminOverviewView: React.FC<AdminOverviewViewProps> = ({
   user,
   departments,
@@ -52,19 +55,37 @@ export const AdminOverviewView: React.FC<AdminOverviewViewProps> = ({
   onOpenCreateUser,
   onOpenCreateAnnouncement,
 }) => {
-  const [data, setData] = useState<AdminOverviewData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<AdminOverviewData | null>(cachedOverviewData);
+  const [loading, setLoading] = useState<boolean>(!cachedOverviewData);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchOverview = useCallback(async () => {
+  const fetchOverview = useCallback(async (isFresh = false, retryCount = 0) => {
     try {
+      if (isFresh) {
+        setRefreshing(true);
+      } else if (!cachedOverviewData) {
+        setLoading(true);
+      }
       setError(null);
-      const res = await api.admin.getOverview();
+
+      const res = await api.admin.getOverview(isFresh);
+      cachedOverviewData = res;
       setData(res);
+      setError(null);
     } catch (err: any) {
-      console.error('Failed to load admin overview:', err);
-      setError(err.message || 'Failed to load organization overview data.');
+      console.warn('Failed to load admin overview:', err);
+      // Auto-retry once after 800ms if initial cold load failed
+      if (retryCount < 1 && !cachedOverviewData) {
+        setTimeout(() => {
+          fetchOverview(isFresh, retryCount + 1);
+        }, 800);
+        return;
+      }
+      // Only set blocking error if we have no cached data to display
+      if (!cachedOverviewData) {
+        setError(err.message || 'Unable to connect to the organization overview service.');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -72,12 +93,11 @@ export const AdminOverviewView: React.FC<AdminOverviewViewProps> = ({
   }, []);
 
   useEffect(() => {
-    fetchOverview();
+    fetchOverview(false);
   }, [fetchOverview]);
 
   const handleRefresh = () => {
-    setRefreshing(true);
-    fetchOverview();
+    fetchOverview(true);
   };
 
   // Time-of-day greeting

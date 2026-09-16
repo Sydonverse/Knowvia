@@ -347,81 +347,254 @@ export const deleteUser = async (req: AuthRequest, res: Response): Promise<void>
   }
 };
 
+// In-memory overview cache (15 seconds TTL)
+let overviewCache: { data: any; timestamp: number } | null = null;
+const OVERVIEW_CACHE_TTL_MS = 15 * 1000;
+
 /**
  * GET /api/v1/admin/overview
  * Returns organization-wide aggregated metrics, department breakdowns,
  * upcoming cross-department sessions, attention items, and recent real activity.
+ * Supports ?fresh=true to bypass server cache.
  */
-export const getAdminOverview = async (_req: AuthRequest, res: Response): Promise<void> => {
+export const getAdminOverview = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const isFresh = req.query.fresh === 'true';
+    const nowMs = Date.now();
+
+    if (!isFresh && overviewCache && nowMs - overviewCache.timestamp < OVERVIEW_CACHE_TTL_MS) {
+      res.json(overviewCache.data);
+      return;
+    }
+
     const now = new Date();
 
-    // 1. Organization Summary Counts
+    // Batch 1: Core User, Department, Onboarding & Submission Metrics (4 concurrent queries)
+    const [userRoleCounts, departments, pendingOnboardingCount, pendingSubmissionsCount] = await Promise.all([
+      // Group user counts by role (1 query instead of 3)
+      prisma.user
+        .groupBy({
+          by: ['role'],
+          where: { deletedAt: null, isActive: true },
+          _count: { _all: true },
+        })
+        .catch((err) => {
+          console.warn('User groupBy query fallback:', err);
+          return [] as Array<{ role: string; _count: { _all: number } }>;
+        }),
+
+      // Department breakdown (also provides activeDepartments count)
+      prisma.department
+        .findMany({
+          where: { isActive: true },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true,
+            icon: true,
+            colorHex: true,
+            members: {
+              where: { status: 'APPROVED', user: { deletedAt: null, isActive: true } },
+              select: { role: true },
+            },
+            schedules: {
+              where: { endTime: { gte: now } },
+              select: { id: true },
+            },
+            assignments: {
+              where: { status: 'OPEN' },
+              select: { id: true },
+            },
+          },
+          orderBy: { name: 'asc' },
+        })
+        .catch((err) => {
+          console.warn('Departments findMany query fallback:', err);
+          return [];
+        }),
+
+      // Pending onboarding invitations
+      prisma.onboardingInvitation
+        .count({
+          where: {
+            usedAt: null,
+            expiresAt: { gte: now },
+            user: { isActive: false, deletedAt: null },
+          },
+        })
+        .catch((err) => {
+          console.warn('Onboarding count fallback:', err);
+          return 0;
+        }),
+
+      // Submissions needing review
+      prisma.submission
+        .count({
+          where: {
+            status: { in: ['SUBMITTED', 'IN_REVIEW'] },
+          },
+        })
+        .catch((err) => {
+          console.warn('Submissions count fallback:', err);
+          return 0;
+        }),
+    ]);
+
+    // Parse user metrics from groupBy
+    let totalActiveUsers = 0;
+    let activeInterns = 0;
+    let activeTutors = 0;
+
+    userRoleCounts.forEach((group) => {
+      const count = group._count._all || 0;
+      totalActiveUsers += count;
+      if (group.role === 'INTERN') activeInterns += count;
+      if (group.role === 'TUTOR') activeTutors += count;
+    });
+
+    const activeDepartments = departments.length;
+
+    // Batch 2: Schedules, Materials, Assignments & Recent Activities (4-5 concurrent queries)
     const [
-      totalActiveUsers,
-      activeInterns,
-      activeTutors,
-      activeDepartments,
-      pendingOnboardingCount,
-      pendingSubmissionsCount,
       upcomingSessionsCount,
       totalMaterialsCount,
       activeAssignmentsCount,
+      upcomingSessions,
+      recentUsers,
+      recentSubmissions,
+      recentMaterials,
+      recentSchedules,
     ] = await Promise.all([
-      prisma.user.count({ where: { deletedAt: null, isActive: true } }),
-      prisma.user.count({ where: { deletedAt: null, isActive: true, role: 'INTERN' } }),
-      prisma.user.count({ where: { deletedAt: null, isActive: true, role: 'TUTOR' } }),
-      prisma.department.count({ where: { isActive: true } }),
-      prisma.onboardingInvitation.count({
-        where: {
-          usedAt: null,
-          expiresAt: { gte: now },
-          user: { isActive: false, deletedAt: null },
-        },
-      }),
-      prisma.submission.count({
-        where: {
-          status: { in: ['SUBMITTED', 'IN_REVIEW'] },
-        },
-      }),
-      prisma.classSchedule.count({
-        where: {
-          endTime: { gte: now },
-        },
-      }),
-      prisma.material.count(),
-      prisma.assignment.count({
-        where: {
-          status: 'OPEN',
-        },
-      }),
-    ]);
-
-    // 2. Department Breakdown
-    const departments = await prisma.department.findMany({
-      where: { isActive: true },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        description: true,
-        icon: true,
-        colorHex: true,
-        members: {
-          where: { status: 'APPROVED', user: { deletedAt: null, isActive: true } },
-          select: { role: true },
-        },
-        schedules: {
+      prisma.classSchedule
+        .count({
           where: { endTime: { gte: now } },
-          select: { id: true },
-        },
-        assignments: {
+        })
+        .catch(() => 0),
+
+      prisma.material.count().catch(() => 0),
+
+      prisma.assignment
+        .count({
           where: { status: 'OPEN' },
-          select: { id: true },
-        },
-      },
-      orderBy: { name: 'asc' },
-    });
+        })
+        .catch(() => 0),
+
+      prisma.classSchedule
+        .findMany({
+          where: { endTime: { gte: now } },
+          orderBy: { startTime: 'asc' },
+          take: 6,
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            startTime: true,
+            endTime: true,
+            location: true,
+            meetingLink: true,
+            department: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                colorHex: true,
+                icon: true,
+              },
+            },
+            scheduler: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+              },
+            },
+          },
+        })
+        .catch((err) => {
+          console.warn('Upcoming sessions query fallback:', err);
+          return [];
+        }),
+
+      prisma.user
+        .findMany({
+          where: { deletedAt: null },
+          orderBy: { createdAt: 'desc' },
+          take: 4,
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            isActive: true,
+            createdAt: true,
+            departmentMemberships: {
+              take: 1,
+              select: { department: { select: { name: true, slug: true, colorHex: true } } },
+            },
+          },
+        })
+        .catch((err) => {
+          console.warn('Recent users query fallback:', err);
+          return [];
+        }),
+
+      prisma.submission
+        .findMany({
+          orderBy: { submittedAt: 'desc' },
+          take: 4,
+          select: {
+            id: true,
+            submittedAt: true,
+            submitter: { select: { firstName: true, lastName: true } },
+            assignment: {
+              select: {
+                title: true,
+                department: { select: { name: true, slug: true, colorHex: true } },
+              },
+            },
+          },
+        })
+        .catch((err) => {
+          console.warn('Recent submissions query fallback:', err);
+          return [];
+        }),
+
+      prisma.material
+        .findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 4,
+          select: {
+            id: true,
+            title: true,
+            createdAt: true,
+            uploader: { select: { firstName: true, lastName: true } },
+            department: { select: { name: true, slug: true, colorHex: true } },
+          },
+        })
+        .catch((err) => {
+          console.warn('Recent materials query fallback:', err);
+          return [];
+        }),
+
+      prisma.classSchedule
+        .findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 4,
+          select: {
+            id: true,
+            title: true,
+            createdAt: true,
+            scheduler: { select: { firstName: true, lastName: true } },
+            department: { select: { name: true, slug: true, colorHex: true } },
+          },
+        })
+        .catch((err) => {
+          console.warn('Recent schedules query fallback:', err);
+          return [];
+        }),
+    ]);
 
     const departmentStats = departments.map((dept) => {
       const interns = dept.members.filter((m) => m.role === 'INTERN').length;
@@ -439,41 +612,6 @@ export const getAdminOverview = async (_req: AuthRequest, res: Response): Promis
         activeAssignmentsCount: dept.assignments.length,
         status: 'Active',
       };
-    });
-
-    // 3. Organization-wide Upcoming Sessions (next 6 upcoming)
-    const upcomingSessions = await prisma.classSchedule.findMany({
-      where: {
-        endTime: { gte: now },
-      },
-      orderBy: { startTime: 'asc' },
-      take: 6,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        startTime: true,
-        endTime: true,
-        location: true,
-        meetingLink: true,
-        department: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            colorHex: true,
-            icon: true,
-          },
-        },
-        scheduler: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-          },
-        },
-      },
     });
 
     // 4. Requires Attention items
@@ -512,63 +650,6 @@ export const getAdminOverview = async (_req: AuthRequest, res: Response): Promis
     }
 
     // 5. Recent Activity Feed (real events from DB timestamps)
-    const [recentUsers, recentSubmissions, recentMaterials, recentSchedules] = await Promise.all([
-      prisma.user.findMany({
-        where: { deletedAt: null },
-        orderBy: { createdAt: 'desc' },
-        take: 4,
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          role: true,
-          isActive: true,
-          createdAt: true,
-          departmentMemberships: {
-            take: 1,
-            select: { department: { select: { name: true, slug: true, colorHex: true } } },
-          },
-        },
-      }),
-      prisma.submission.findMany({
-        orderBy: { submittedAt: 'desc' },
-        take: 4,
-        select: {
-          id: true,
-          submittedAt: true,
-          submitter: { select: { firstName: true, lastName: true } },
-          assignment: {
-            select: {
-              title: true,
-              department: { select: { name: true, slug: true, colorHex: true } },
-            },
-          },
-        },
-      }),
-      prisma.material.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 4,
-        select: {
-          id: true,
-          title: true,
-          createdAt: true,
-          uploader: { select: { firstName: true, lastName: true } },
-          department: { select: { name: true, slug: true, colorHex: true } },
-        },
-      }),
-      prisma.classSchedule.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 4,
-        select: {
-          id: true,
-          title: true,
-          createdAt: true,
-          scheduler: { select: { firstName: true, lastName: true } },
-          department: { select: { name: true, slug: true, colorHex: true } },
-        },
-      }),
-    ]);
-
     const activityFeed: Array<{
       id: string;
       type: 'USER_JOINED' | 'SUBMISSION' | 'MATERIAL' | 'SCHEDULE';
@@ -637,7 +718,7 @@ export const getAdminOverview = async (_req: AuthRequest, res: Response): Promis
     activityFeed.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     const topActivities = activityFeed.slice(0, 6);
 
-    res.json({
+    const payload = {
       metrics: {
         totalUsers: totalActiveUsers,
         activeInterns,
@@ -653,7 +734,11 @@ export const getAdminOverview = async (_req: AuthRequest, res: Response): Promis
       upcomingSessions,
       attentionItems,
       recentActivity: topActivities,
-    });
+    };
+
+    overviewCache = { data: payload, timestamp: Date.now() };
+
+    res.json(payload);
   } catch (error) {
     console.error('getAdminOverview error:', error);
     res.status(500).json({ error: 'Failed to retrieve admin organization overview data.' });

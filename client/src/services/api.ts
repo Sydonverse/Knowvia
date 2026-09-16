@@ -81,7 +81,8 @@ class ApiClient {
 
   // Admin Management
   public admin = {
-    getOverview: () => this.request<AdminOverviewData>('/admin/overview'),
+    getOverview: (fresh?: boolean) =>
+      this.request<AdminOverviewData>(`/admin/overview${fresh ? '?fresh=true' : ''}`),
     createUser: (data: {
       email: string;
       firstName: string;
