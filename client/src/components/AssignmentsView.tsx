@@ -144,7 +144,7 @@ export const AssignmentsView: React.FC<AssignmentsViewProps> = ({
       <div className="view-header">
         <div>
           <div className="view-pretitle">ASSESSMENT WORKSPACE</div>
-          <h1 className="view-title">Assignment Management</h1>
+          <h1 className="view-title">{isTutorOrAdmin ? 'Assignment Management' : 'Assignments'}</h1>
           <p className="view-subtitle">
             {isTutorOrAdmin
               ? `Create assessments, monitor student submissions, and provide direct qualitative feedback for ${activeDept.name}.`

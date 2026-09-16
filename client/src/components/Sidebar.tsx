@@ -47,7 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'schedule' as ActiveTab,
-      label: 'Class Scheduler',
+      label: isTutorOrAdmin ? 'Class Scheduler' : 'Class Schedule',
       icon: Calendar,
       description: isTutorOrAdmin ? 'Flexible class timetable' : 'Class timetable',
     },
@@ -59,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'assignments' as ActiveTab,
-      label: 'Assignment Management',
+      label: isTutorOrAdmin ? 'Assignment Management' : 'Assignments',
       icon: ClipboardCheck,
       description: isTutorOrAdmin ? 'Create & review work' : 'Submit & track progress',
     },

@@ -188,9 +188,13 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
                         View full details in{' '}
                         <strong>
                           {ann.sourceType === 'ASSIGNMENT'
-                            ? 'Assignment Management'
+                            ? isTutorOrAdmin
+                              ? 'Assignment Management'
+                              : 'Assignments'
                             : ann.sourceType === 'CLASS_SCHEDULE'
-                            ? 'Class Scheduler'
+                            ? isTutorOrAdmin
+                              ? 'Class Scheduler'
+                              : 'Class Schedule'
                             : 'Learning Materials'}
                         </strong>
                       </span>

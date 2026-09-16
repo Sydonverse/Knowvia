@@ -37,7 +37,9 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
       <div className="view-header">
         <div>
           <div className="view-pretitle">FLEXIBLE TIMETABLE</div>
-          <h1 className="view-title">Class Scheduler & Sessions</h1>
+          <h1 className="view-title">
+            {isTutorOrAdmin ? 'Class Scheduler & Sessions' : 'Class Schedule & Sessions'}
+          </h1>
           <p className="view-subtitle">
             {isTutorOrAdmin
               ? `Dynamic scheduling for ${activeDept.name}. Schedule extra workshops, labs, or lectures beyond the static timetable.`
