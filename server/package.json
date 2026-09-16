@@ -10,7 +10,7 @@
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:seed": "ts-node src/prisma/seed.ts",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

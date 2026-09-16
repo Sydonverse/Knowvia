@@ -1,5 +1,5 @@
 // Knowvia PWA Service Worker
-const CACHE_NAME = 'knowvia-cache-v3';
+const CACHE_NAME = 'knowvia-cache-v4';
 
 const STATIC_ASSETS = [
   '/',
@@ -45,17 +45,22 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch: serve cached shell offline, bypass API and WebSockets
+// Fetch: serve cached shell offline in production, bypass API and WebSockets
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // 1. Only handle GET requests
+  // 1. Development bypass: allow Vite HMR, dev bundling, and hot reload to work unobstructed
+  if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
+    return;
+  }
+
+  // 2. Only handle GET requests
   if (request.method !== 'GET') {
     return;
   }
 
-  // 2. Bypass API, WebSocket, upload endpoints, and Vite development routes
+  // 3. Bypass API, WebSocket, upload endpoints, and Vite development routes
   if (
     url.pathname.startsWith('/api') ||
     url.pathname.startsWith('/socket.io') ||
@@ -69,7 +74,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. Navigation requests (HTML SPA route changes): Network-first with offline /index.html fallback
+  // 4. Navigation requests (HTML SPA route changes): Network-first with offline /index.html fallback
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request).catch(async () => {
@@ -84,7 +89,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 4. Static assets (icons, manifest, build bundles): Stale-while-revalidate / cache-first
+  // 5. Static assets (icons, manifest, build bundles): Stale-while-revalidate / cache-first
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       const fetchPromise = fetch(request)

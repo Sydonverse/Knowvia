@@ -297,7 +297,7 @@ export const completeOnboarding = async (req: Request, res: Response): Promise<v
           usedAt: new Date(),
         },
       });
-    });
+    }, { maxWait: 10000, timeout: 20000 });
 
     res.json({
       message: 'Account successfully activated! You can now log in using your email and new password.',
@@ -428,7 +428,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
         where: { id: resetToken.id },
         data: { usedAt: new Date() },
       });
-    });
+    }, { maxWait: 10000, timeout: 20000 });
 
     res.json({
       message: 'Your password has been successfully reset. You can now log in.',

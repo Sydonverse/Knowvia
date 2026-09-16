@@ -79,7 +79,7 @@ export const createUser = async (req: AuthRequest, res: Response): Promise<void>
       });
 
       return { newUser: user, invitation: inv };
-    });
+    }, { maxWait: 10000, timeout: 20000 });
 
     // 5. Dispatch onboarding invitation email via Nodemailer
     try {
@@ -336,7 +336,7 @@ export const deleteUser = async (req: AuthRequest, res: Response): Promise<void>
       await tx.departmentMember.deleteMany({
         where: { userId: targetUser.id },
       });
-    });
+    }, { maxWait: 10000, timeout: 20000 });
 
     res.json({
       message: `User ${targetUser.firstName} ${targetUser.lastName} (${targetUser.email}) has been successfully removed.`,

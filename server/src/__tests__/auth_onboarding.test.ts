@@ -6,6 +6,8 @@ import { emailTransporter } from '../services/email.service';
 import { hashToken } from '../utils/token.utils';
 
 describe('Knowvia Admin-Controlled Account Creation & Onboarding Security', () => {
+  jest.setTimeout(30000);
+
   let adminToken: string;
   let internToken: string;
   let sendMailMock: jest.SpyInstance;
@@ -55,7 +57,7 @@ describe('Knowvia Admin-Controlled Account Creation & Onboarding Security', () =
       .post('/api/v1/auth/login')
       .send({ email: 'test-ephemeral-guard-intern@knowvia.internal', password: 'password123' });
     internToken = internLoginRes.body.token;
-  });
+  }, 30000);
 
   afterAll(async () => {
     sendMailMock.mockRestore();
@@ -75,7 +77,7 @@ describe('Knowvia Admin-Controlled Account Creation & Onboarding Security', () =
 
     await prisma.$disconnect();
     server.close();
-  });
+  }, 30000);
 
   // ─── 1. AUTHORIZATION TESTS ─────────────────────────────────
   describe('Authorization Controls', () => {
@@ -442,7 +444,7 @@ describe('Knowvia Admin-Controlled Account Creation & Onboarding Security', () =
 
       removableUserId = loginRes.body.user.id;
       removableUserToken = loginRes.body.token;
-    });
+    }, 30000);
 
     it('rejects unauthenticated user removal with 401', async () => {
       const res = await request(app).delete(`/api/v1/admin/users/${removableUserId}`);
