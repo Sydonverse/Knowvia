@@ -6,6 +6,7 @@ import { AuthRequest } from '../middleware/auth';
 import { validateFileSafety } from '../utils/fileValidator';
 import { createAutoAnnouncement } from '../services/announcement.service';
 import { notifyUser } from '../services/notification.service';
+import { persistUploadedFile } from '../services/storage.service';
 import { getIO } from '../socket';
 
 export const listAssignments = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -242,7 +243,8 @@ export const submitAssignment = async (req: AuthRequest, res: Response): Promise
         res.status(400).json({ error: safetyCheck.error });
         return;
       }
-      fileUrl = `/uploads/${file.filename}`;
+      const uploadRes = await persistUploadedFile(file.path, file.filename, file.mimetype);
+      fileUrl = uploadRes.fileUrl;
       fileName = safetyCheck.sanitizedFilename;
       fileSizeBytes = file.size;
     }

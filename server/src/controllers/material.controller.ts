@@ -5,6 +5,7 @@ import prisma from '../config/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { validateFileSafety } from '../utils/fileValidator';
 import { createAutoAnnouncement } from '../services/announcement.service';
+import { persistUploadedFile, deleteUploadedFile } from '../services/storage.service';
 import { getIO } from '../socket';
 
 export const listMaterials = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -91,7 +92,7 @@ export const uploadMaterial = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    const fileUrl = `/uploads/${file.filename}`;
+    const { fileUrl } = await persistUploadedFile(file.path, file.filename, file.mimetype);
 
     const material = await prisma.material.create({
       data: {
@@ -188,13 +189,8 @@ export const deleteMaterial = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    // Try deleting file from disk
-    const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads');
-    const filename = path.basename(material.fileUrl);
-    const diskPath = path.join(uploadDir, filename);
-    if (fs.existsSync(diskPath)) {
-      fs.unlinkSync(diskPath);
-    }
+    // Delete file from storage (cloud or local fallback)
+    await deleteUploadedFile(material.fileUrl);
 
     await prisma.material.delete({ where: { id } });
 
