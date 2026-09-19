@@ -23,6 +23,7 @@ import {
   createAnnouncement,
   deleteAnnouncement,
   clearDepartmentAnnouncements,
+  toggleAnnouncementPin,
 } from '../controllers/announcement.controller';
 
 import {
@@ -62,6 +63,7 @@ router.delete('/:slug/materials/:id', authenticate, departmentAccessGuard, delet
 // Announcements
 router.get('/:slug/announcements', authenticate, departmentAccessGuard, listAnnouncements);
 router.post('/:slug/announcements', authenticate, departmentAccessGuard, createAnnouncement);
+router.patch('/:slug/announcements/:id/pin', authenticate, departmentAccessGuard, toggleAnnouncementPin);
 router.delete('/:slug/announcements', authenticate, departmentAccessGuard, clearDepartmentAnnouncements);
 router.delete('/:slug/announcements/:id', authenticate, departmentAccessGuard, deleteAnnouncement);
 

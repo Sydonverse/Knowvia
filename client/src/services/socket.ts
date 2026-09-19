@@ -20,6 +20,7 @@ class SocketService {
   private typingListeners: ((data: { userId: string; name: string; departmentSlug: string }) => void)[] = [];
   private stopTypingListeners: ((data: { userId: string; departmentSlug: string }) => void)[] = [];
   private announcementListeners: ((ann: Announcement) => void)[] = [];
+  private announcementUpdatedListeners: ((ann: Announcement) => void)[] = [];
   private announcementDeletedListeners: ((data: { id: string }) => void)[] = [];
   private announcementClearedListeners: ((data: { departmentSlug: string }) => void)[] = [];
   private scheduleListeners: ((sched: ClassSchedule) => void)[] = [];
@@ -36,6 +37,7 @@ class SocketService {
     this.typingListeners = [];
     this.stopTypingListeners = [];
     this.announcementListeners = [];
+    this.announcementUpdatedListeners = [];
     this.announcementDeletedListeners = [];
     this.announcementClearedListeners = [];
     this.scheduleListeners = [];
@@ -90,6 +92,10 @@ class SocketService {
 
     this.socket.on('announcement:new', (ann: Announcement) => {
       this.announcementListeners.forEach((fn) => fn(ann));
+    });
+
+    this.socket.on('announcement:updated', (ann: Announcement) => {
+      this.announcementUpdatedListeners.forEach((fn) => fn(ann));
     });
 
     this.socket.on('announcement:deleted', (data: { id: string }) => {
@@ -191,6 +197,13 @@ class SocketService {
     this.announcementListeners.push(callback);
     return () => {
       this.announcementListeners = this.announcementListeners.filter((fn) => fn !== callback);
+    };
+  }
+
+  public onAnnouncementUpdated(callback: (ann: Announcement) => void) {
+    this.announcementUpdatedListeners.push(callback);
+    return () => {
+      this.announcementUpdatedListeners = this.announcementUpdatedListeners.filter((fn) => fn !== callback);
     };
   }
 

@@ -62,18 +62,20 @@ app.use((_req: Request, res: Response) => {
 // Initialize WebSocket
 initSocket(server);
 
-// Initialize automated class reminder cron job
-initReminderScheduler();
-
 // Start Server
-server.listen(PORT, async () => {
-  console.log(`===========================================`);
-  console.log(`🚀 Knowvia Platform API Server running on port ${PORT}`);
-  console.log(`📡 WebSocket Real-time active`);
-  console.log(`⏰ Class reminder scheduler initialized`);
-  console.log(`🌐 Client Origin: ${CLIENT_URL}`);
-  console.log(`===========================================`);
-  await initAdminBootstrap();
-});
+if (process.env.NODE_ENV !== 'test') {
+  // Initialize automated class reminder cron job
+  initReminderScheduler();
+
+  server.listen(PORT, async () => {
+    console.log(`===========================================`);
+    console.log(`🚀 Knowvia Platform API Server running on port ${PORT}`);
+    console.log(`📡 WebSocket Real-time active`);
+    console.log(`⏰ Class reminder scheduler initialized`);
+    console.log(`🌐 Client Origin: ${CLIENT_URL}`);
+    console.log(`===========================================`);
+    await initAdminBootstrap();
+  });
+}
 
 export { app, server };

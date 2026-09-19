@@ -292,6 +292,16 @@ export const App: React.FC = () => {
       fetchNotifications();
     });
 
+    const unsubAnnUpd = socketService.onAnnouncementUpdated((ann) => {
+      setAnnouncements((prev) => {
+        const next = prev.map((a) => (a.id === ann.id ? ann : a));
+        return next.sort((a, b) => {
+          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+      });
+    });
+
     const unsubAnnDel = socketService.onAnnouncementDeleted((data) => {
       setAnnouncements((prev) => prev.filter((a) => a.id !== data.id));
     });
@@ -343,6 +353,7 @@ export const App: React.FC = () => {
       unsubTyping();
       unsubStopTyping();
       unsubAnnNew();
+      unsubAnnUpd();
       unsubAnnDel();
       unsubAnnClr();
       unsubSchedNew();
@@ -473,6 +484,25 @@ export const App: React.FC = () => {
     if (!activeDept || !confirm('Are you sure you want to delete this announcement?')) return;
     await api.announcements.delete(activeDept.slug, id);
     setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const handleTogglePinAnnouncement = async (id: string) => {
+    const deptSlug = activeDept?.slug || userDepartments[0]?.slug;
+    if (!deptSlug) return;
+    try {
+      const res = await api.announcements.togglePin(deptSlug, id);
+      if (res.announcement) {
+        setAnnouncements((prev) => {
+          const next = prev.map((a) => (a.id === id ? res.announcement : a));
+          return next.sort((a, b) => {
+            if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+        });
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to update announcement pin status');
+    }
   };
 
   const handleClearAnnouncements = async () => {
@@ -761,8 +791,10 @@ export const App: React.FC = () => {
                   announcements={announcements}
                   activeDept={activeDept}
                   isTutorOrAdmin={isTutorOrAdmin}
+                  currentUserRole={user.role}
                   onOpenCreateModal={() => setShowCreateAnnouncementModal(true)}
                   onDeleteAnnouncement={handleDeleteAnnouncement}
+                  onTogglePinAnnouncement={handleTogglePinAnnouncement}
                   onClearAnnouncements={handleClearAnnouncements}
                   onNavigate={handleNavigate}
                 />
@@ -783,8 +815,10 @@ export const App: React.FC = () => {
               announcements={announcements}
               activeDept={userDepartments[0]}
               isTutorOrAdmin={isTutorOrAdmin}
+              currentUserRole={user.role}
               onOpenCreateModal={() => setShowCreateAnnouncementModal(true)}
               onDeleteAnnouncement={handleDeleteAnnouncement}
+              onTogglePinAnnouncement={handleTogglePinAnnouncement}
               onClearAnnouncements={handleClearAnnouncements}
               onNavigate={handleNavigate}
             />

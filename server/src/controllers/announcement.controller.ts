@@ -252,3 +252,94 @@ export const clearDepartmentAnnouncements = async (req: AuthRequest, res: Respon
     res.status(500).json({ error: 'Failed to clear announcements' });
   }
 };
+
+export const toggleAnnouncementPin = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    if (user.role !== 'TUTOR' && user.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Forbidden: Only tutors and administrators can pin or unpin announcements' });
+      return;
+    }
+
+    const announcement = await prisma.announcement.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: { id: true, firstName: true, lastName: true, role: true },
+        },
+        department: {
+          select: { id: true, name: true, slug: true, colorHex: true },
+        },
+      },
+    });
+
+    if (!announcement) {
+      res.status(404).json({ error: 'Announcement not found' });
+      return;
+    }
+
+    // If global announcement (departmentId is null), only ADMIN can toggle pin
+    if (!announcement.departmentId && user.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Forbidden: Only administrators can pin or unpin global announcements' });
+      return;
+    }
+
+    // If department announcement and user is TUTOR, verify membership in that department
+    if (announcement.departmentId && user.role === 'TUTOR') {
+      const membership = await prisma.departmentMember.findUnique({
+        where: {
+          userId_departmentId: {
+            userId: user.id,
+            departmentId: announcement.departmentId,
+          },
+        },
+      });
+
+      if (!membership || membership.status !== 'APPROVED') {
+        res.status(403).json({ error: 'Forbidden: You can only pin or unpin announcements within your assigned department' });
+        return;
+      }
+    }
+
+    const updated = await prisma.announcement.update({
+      where: { id },
+      data: {
+        isPinned: !announcement.isPinned,
+      },
+      include: {
+        author: {
+          select: { id: true, firstName: true, lastName: true, role: true },
+        },
+        department: {
+          select: { id: true, name: true, slug: true, colorHex: true },
+        },
+      },
+    });
+
+    // Real-time broadcast
+    const io = getIO();
+    if (io) {
+      if (updated.department?.slug) {
+        io.to(`dept:${updated.department.slug}`).emit('announcement:updated', updated);
+      } else {
+        io.emit('announcement:updated', updated);
+      }
+    }
+
+    res.json({
+      message: updated.isPinned ? 'Announcement pinned successfully' : 'Announcement unpinned successfully',
+      announcement: updated,
+    });
+  } catch (error) {
+    console.error('Toggle announcement pin error:', error);
+    res.status(500).json({ error: 'Failed to update announcement pin status' });
+  }
+};
+

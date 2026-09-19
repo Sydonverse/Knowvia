@@ -121,6 +121,10 @@ class ApiClient {
       this.request<any>(`/departments/${slug}/announcements`, { method: 'POST', body: JSON.stringify(data) }),
     delete: (slug: string, id: string) =>
       this.request<any>(`/departments/${slug}/announcements/${id}`, { method: 'DELETE' }),
+    togglePin: (slug: string, id: string) =>
+      this.request<{ message: string; announcement: any }>(`/departments/${slug}/announcements/${id}/pin`, {
+        method: 'PATCH',
+      }),
     clear: (slug: string) =>
       this.request<any>(`/departments/${slug}/announcements`, { method: 'DELETE' }),
   };

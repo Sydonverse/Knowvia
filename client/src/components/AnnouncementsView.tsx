@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Megaphone,
   Pin,
+  PinOff,
   Plus,
   Trash2,
   AlertTriangle,
@@ -20,8 +21,10 @@ interface AnnouncementsViewProps {
   announcements: Announcement[];
   activeDept: DepartmentMemberContext;
   isTutorOrAdmin: boolean;
+  currentUserRole?: string;
   onOpenCreateModal: () => void;
   onDeleteAnnouncement: (id: string) => void;
+  onTogglePinAnnouncement?: (id: string) => void;
   onClearAnnouncements: () => void;
   onNavigate: (tab: ActiveTab, targetId?: string) => void;
 }
@@ -30,8 +33,10 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
   announcements,
   activeDept,
   isTutorOrAdmin,
+  currentUserRole,
   onOpenCreateModal,
   onDeleteAnnouncement,
+  onTogglePinAnnouncement,
   onClearAnnouncements,
   onNavigate,
 }) => {
@@ -111,6 +116,10 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
         <div className="announcements-feed">
           {announcements.map((ann) => {
             const isGlobal = !ann.departmentId;
+            const canTogglePin =
+              isTutorOrAdmin &&
+              Boolean(onTogglePinAnnouncement) &&
+              (!isGlobal || currentUserRole === 'ADMIN');
 
             return (
               <div
@@ -121,8 +130,24 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
               >
                 {ann.isPinned && (
                   <div className="pinned-badge-strip">
-                    <Pin size={13} />
-                    <span>PINNED ANNOUNCEMENT</span>
+                    <div className="pinned-badge-label">
+                      <Pin size={13} />
+                      <span>PINNED ANNOUNCEMENT</span>
+                    </div>
+                    {canTogglePin && (
+                      <button
+                        type="button"
+                        className="btn-unpin-badge"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTogglePinAnnouncement!(ann.id);
+                        }}
+                        title="Unpin this announcement"
+                      >
+                        <PinOff size={11} />
+                        <span>Unpin</span>
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -163,7 +188,21 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
                       <span>{new Date(ann.createdAt).toLocaleDateString()}</span>
                     </span>
 
+                    {canTogglePin && (
+                      <button
+                        type="button"
+                        className={`btn-icon-pin ${ann.isPinned ? 'is-pinned' : ''}`}
+                        onClick={() => onTogglePinAnnouncement!(ann.id)}
+                        title={ann.isPinned ? 'Unpin announcement' : 'Pin announcement to top'}
+                        aria-label={ann.isPinned ? 'Unpin announcement' : 'Pin announcement to top'}
+                      >
+                        {ann.isPinned ? <PinOff size={13} /> : <Pin size={13} />}
+                        <span>{ann.isPinned ? 'Unpin' : 'Pin'}</span>
+                      </button>
+                    )}
+
                     <button
+                      type="button"
                       className="btn-icon-danger-sm"
                       onClick={() => onDeleteAnnouncement(ann.id)}
                       title="Delete Announcement"
