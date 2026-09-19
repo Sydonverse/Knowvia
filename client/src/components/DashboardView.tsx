@@ -26,6 +26,7 @@ import {
   AssignmentProgressStats,
   User,
 } from '../types';
+import { getFileUrl } from '../utils/file';
 import { ActiveTab } from './Sidebar';
 
 interface DashboardViewProps {
@@ -395,7 +396,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         </div>
                       </div>
                       <a
-                        href={mat.fileUrl}
+                        href={getFileUrl(mat.fileUrl)}
                         download={mat.fileName}
                         className="btn-download-pill"
                         title="Download Material"
@@ -483,7 +484,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         </div>
                       </div>
                       <a
-                        href={mat.fileUrl}
+                        href={getFileUrl(mat.fileUrl)}
                         download={mat.fileName}
                         className="btn-download-icon"
                         title="Download"

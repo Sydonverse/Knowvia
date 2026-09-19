@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { Material, DepartmentMemberContext } from '../types';
 
+import { getFileUrl } from '../utils/file';
+
 interface MaterialsViewProps {
   materials: Material[];
   activeDept: DepartmentMemberContext;
@@ -153,7 +155,7 @@ export const MaterialsView: React.FC<MaterialsViewProps> = ({
 
                 <div className="material-actions">
                   <a
-                    href={item.fileUrl}
+                    href={getFileUrl(item.fileUrl)}
                     download={item.fileName}
                     className="btn-primary btn-sm"
                     title={`Download ${item.fileName}`}

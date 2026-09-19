@@ -18,9 +18,32 @@ interface AuthenticatedSocket extends Socket {
 }
 
 export const initSocket = (httpServer: HttpServer): Server => {
+  const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const appUrl = (process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const allowedOrigins = [
+    clientUrl,
+    appUrl,
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+  ];
+
   io = new Server(httpServer, {
     cors: {
-      origin: [process.env.CLIENT_URL || 'http://localhost:3000', 'http://localhost:3000', 'http://127.0.0.1:3000'],
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const normalized = origin.replace(/\/$/, '');
+        const isAllowed =
+          allowedOrigins.includes(normalized) ||
+          normalized.endsWith('.vercel.app') ||
+          normalized === clientUrl ||
+          normalized === appUrl;
+        if (isAllowed) {
+          return callback(null, true);
+        }
+        return callback(new Error(`WebSocket CORS not allowed for origin ${origin}`));
+      },
       credentials: true,
       methods: ['GET', 'POST'],
     },

@@ -23,6 +23,7 @@ import {
   Submission,
   SubmissionVerdict,
 } from '../types';
+import { getFileUrl } from '../utils/file';
 
 interface AssignmentsViewProps {
   assignments: Assignment[];
@@ -271,7 +272,7 @@ export const AssignmentsView: React.FC<AssignmentsViewProps> = ({
 
                               {mySubmission.fileUrl && (
                                 <a
-                                  href={mySubmission.fileUrl}
+                                  href={getFileUrl(mySubmission.fileUrl)}
                                   download={mySubmission.fileName || 'submission.bin'}
                                   className="btn-download-pill"
                                 >
@@ -440,7 +441,7 @@ export const AssignmentsView: React.FC<AssignmentsViewProps> = ({
                                     <td>
                                       {sub.fileUrl ? (
                                         <a
-                                          href={sub.fileUrl}
+                                          href={getFileUrl(sub.fileUrl)}
                                           download={sub.fileName || 'submission.bin'}
                                           className="btn-link-sm"
                                         >
@@ -508,7 +509,7 @@ export const AssignmentsView: React.FC<AssignmentsViewProps> = ({
                 <div className="review-file-preview">
                   <span>Deliverable File: </span>
                   <a
-                    href={reviewingSubmission.submission.fileUrl}
+                    href={getFileUrl(reviewingSubmission.submission.fileUrl)}
                     download={reviewingSubmission.submission.fileName || 'file.bin'}
                     className="btn-primary btn-sm"
                   >
