@@ -13,6 +13,8 @@ import {
   Sparkles,
   Search,
   Trash2,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Department } from '../types';
@@ -60,9 +62,19 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
   const [modalSubmitting, setModalSubmitting] = useState(false);
   const [modalError, setModalError] = useState('');
   const [modalSuccess, setModalSuccess] = useState('');
+  const [createdInviteData, setCreatedInviteData] = useState<{
+    email: string;
+    name: string;
+    url: string;
+    emailSent: boolean;
+    warning?: string | null;
+  } | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
-  // Resend State
+  // Resend / Copy Link State
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [resendNotice, setResendNotice] = useState<{ id: string; msg: string; isError?: boolean } | null>(null);
 
   // Delete / Removal State
@@ -93,10 +105,12 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
     e.preventDefault();
     setModalError('');
     setModalSuccess('');
+    setCreatedInviteData(null);
+    setLinkCopied(false);
     setModalSubmitting(true);
 
     try {
-      await api.admin.createUser({
+      const res = await api.admin.createUser({
         email: email.trim(),
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -104,21 +118,54 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
         departmentSlug,
       });
 
-      setModalSuccess(`Invitation successfully sent to ${email.trim()}!`);
-      // Reset form
-      setFirstName('');
-      setLastName('');
-      setEmail('');
       fetchUsers();
 
-      setTimeout(() => {
-        setShowCreateModal(false);
-        setModalSuccess('');
-      }, 1500);
+      if (res.onboardingUrl) {
+        setCreatedInviteData({
+          email: email.trim(),
+          name: `${firstName.trim()} ${lastName.trim()}`,
+          url: res.onboardingUrl,
+          emailSent: res.emailSent !== false,
+          warning: res.emailWarning,
+        });
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+      } else {
+        setModalSuccess('User account created successfully!');
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setTimeout(() => {
+          setShowCreateModal(false);
+          setModalSuccess('');
+        }, 1500);
+      }
     } catch (err: any) {
-      setModalError(err.message || 'Failed to create user account and send invitation.');
+      setModalError(err.message || 'Failed to create user account.');
     } finally {
       setModalSubmitting(false);
+    }
+  };
+
+  const handleCopyInvitationLink = async (userId: string) => {
+    setCopyingId(userId);
+    setResendNotice(null);
+    try {
+      const res = await api.admin.resendInvitation(userId);
+      if (res.onboardingUrl) {
+        await navigator.clipboard.writeText(res.onboardingUrl);
+        setCopiedId(userId);
+        setResendNotice({ id: userId, msg: 'Onboarding link copied to clipboard!' });
+        setTimeout(() => setCopiedId(null), 3000);
+      } else {
+        setResendNotice({ id: userId, msg: res.message || 'Link generated' });
+      }
+      fetchUsers();
+    } catch (err: any) {
+      setResendNotice({ id: userId, msg: err.message || 'Failed to generate link', isError: true });
+    } finally {
+      setCopyingId(null);
     }
   };
 
@@ -127,8 +174,14 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
     setResendNotice(null);
 
     try {
-      await api.admin.resendInvitation(userId);
-      setResendNotice({ id: userId, msg: 'New invitation link sent!' });
+      const res = await api.admin.resendInvitation(userId);
+      setResendNotice({
+        id: userId,
+        msg: res.emailSent === false
+          ? 'Email delivery could not be verified. Use "Copy Link" to share manually.'
+          : 'New invitation email sent!',
+        isError: res.emailSent === false,
+      });
       fetchUsers();
     } catch (err: any) {
       setResendNotice({ id: userId, msg: err.message || 'Resend failed', isError: true });
@@ -444,16 +497,30 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
                             </span>
                           )}
                           {!u.isActive && u.role !== 'ADMIN' && (
-                            <button
-                              type="button"
-                              className="btn-secondary"
-                              style={{ padding: '5px 10px', fontSize: '12px' }}
-                              disabled={resendingId === u.id}
-                              onClick={() => handleResendInvitation(u.id)}
-                            >
-                              <Mail size={13} />
-                              <span>{resendingId === u.id ? 'Sending...' : 'Resend Invite'}</span>
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                style={{ padding: '5px 10px', fontSize: '12px' }}
+                                disabled={copyingId === u.id || resendingId === u.id}
+                                onClick={() => handleCopyInvitationLink(u.id)}
+                                title="Generate & copy onboarding link to clipboard"
+                              >
+                                {copiedId === u.id ? <Check size={13} color="#10b981" /> : <Copy size={13} />}
+                                <span>{copyingId === u.id ? 'Copying...' : copiedId === u.id ? 'Copied!' : 'Copy Link'}</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-secondary"
+                                style={{ padding: '5px 10px', fontSize: '12px' }}
+                                disabled={resendingId === u.id || copyingId === u.id}
+                                onClick={() => handleResendInvitation(u.id)}
+                                title="Resend invitation email"
+                              >
+                                <Mail size={13} />
+                                <span>{resendingId === u.id ? 'Sending...' : 'Resend Invite'}</span>
+                              </button>
+                            </>
                           )}
                           {u.id !== currentUserId ? (
                             <button
@@ -516,156 +583,238 @@ export const AdminUsersView: React.FC<AdminUsersViewProps> = ({ availableDepartm
               </button>
             </div>
 
-            <form onSubmit={handleCreateUser}>
-              <div className="modal-body">
+            {createdInviteData ? (
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '24px 20px' }}>
                 <div
                   style={{
-                    background: 'var(--primary-light)',
-                    border: '1px solid var(--primary-subtle)',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    padding: '14px 16px',
                     borderRadius: 'var(--radius-md)',
-                    padding: '12px 14px',
-                    fontSize: '12px',
-                    color: 'var(--primary)',
-                    lineHeight: 1.5,
+                    background: createdInviteData.emailSent ? 'var(--success-light, #f0fdf4)' : '#fffbeb',
+                    border: `1px solid ${createdInviteData.emailSent ? 'var(--success-border, #bbf7d0)' : '#fde68a'}`,
+                    color: createdInviteData.emailSent ? '#15803d' : '#92400e',
                   }}
                 >
-                  <strong>Security Protocol:</strong> You do not need to assign a password. The user will receive an invitation email containing a secure 24-hour one-time onboarding link to set their own password.
+                  {createdInviteData.emailSent ? (
+                    <CheckCircle2 size={22} color="#16a34a" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  ) : (
+                    <AlertCircle size={22} color="#d97706" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  )}
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '14px' }}>
+                      {createdInviteData.emailSent
+                        ? 'Account Created & Invitation Dispatched!'
+                        : 'Account Created Successfully (Manual Link Available)'}
+                    </div>
+                    <div style={{ fontSize: '12px', marginTop: '4px', lineHeight: 1.5, opacity: 0.9 }}>
+                      {createdInviteData.emailSent
+                        ? `An invitation email was sent to ${createdInviteData.email}. You can also copy the direct link below if needed:`
+                        : `Account registered in the directory. Automatic email delivery could not complete over cloud SMTP ports. You can copy the secure 24-hour setup link below and share it directly with the user:`}
+                    </div>
+                  </div>
                 </div>
 
-                {modalError && <div className="form-error-banner">{modalError}</div>}
-                {modalSuccess && (
-                  <div
-                    style={{
-                      background: 'var(--success-light)',
-                      border: '1px solid var(--success-border)',
-                      color: '#15803d',
-                      padding: '10px 14px',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '13px',
+                <div className="form-field">
+                  <label className="field-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>One-Time Onboarding Link (24-Hour Expiration)</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Cryptographically Signed</span>
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      readOnly
+                      value={createdInviteData.url}
+                      className="input-clean"
+                      style={{ fontSize: '12px', background: 'var(--bg-subtle)', cursor: 'text' }}
+                      onFocus={(e) => e.target.select()}
+                    />
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      style={{ minWidth: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(createdInviteData.url);
+                        setLinkCopied(true);
+                        setTimeout(() => setLinkCopied(false), 3000);
+                      }}
+                    >
+                      {linkCopied ? <Check size={15} /> : <Copy size={15} />}
+                      <span>{linkCopied ? 'Copied!' : 'Copy Link'}</span>
+                    </button>
+                  </div>
+                  <span className="field-help-text">
+                    Send this link to <strong>{createdInviteData.name}</strong> ({createdInviteData.email}) via WhatsApp, Slack, or direct message so they can set their password.
+                  </span>
+                </div>
+
+                <div className="modal-footer" style={{ marginTop: '8px', padding: 0, borderTop: 'none' }}>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ width: '100%' }}
+                    onClick={() => {
+                      setCreatedInviteData(null);
+                      setShowCreateModal(false);
                     }}
                   >
-                    {modalSuccess}
-                  </div>
-                )}
-
-                <div className="form-grid-2">
-                  <div className="form-field">
-                    <label className="field-label">First Name *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Jane"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      className="input-clean"
-                    />
-                  </div>
-                  <div className="form-field">
-                    <label className="field-label">Last Name *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Doe"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      className="input-clean"
-                    />
-                  </div>
+                    Done
+                  </button>
                 </div>
-
-                <div className="form-field">
-                  <label className="field-label">User Email Address *</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="name@organization.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="input-clean"
-                  />
-                  <span className="field-help-text">
-                    The onboarding invitation link will be sent to this email address.
-                  </span>
-                </div>
-
-                <div className="form-field">
-                  <label className="field-label">Assigned Role *</label>
-                  <div className="role-selector-cards">
-                    <label
-                      className={`role-select-card ${role === 'INTERN' ? 'selected' : ''}`}
-                      onClick={() => setRole('INTERN')}
-                    >
-                      <input
-                        type="radio"
-                        name="modal-role"
-                        value="INTERN"
-                        checked={role === 'INTERN'}
-                        onChange={() => setRole('INTERN')}
-                      />
-                      <GraduationCap size={18} color="#10b981" />
-                      <div>
-                        <strong>Intern / Student</strong>
-                        <div className="role-card-desc">Class timetable, materials & assignment submissions</div>
-                      </div>
-                    </label>
-
-                    <label
-                      className={`role-select-card ${role === 'TUTOR' ? 'selected' : ''}`}
-                      onClick={() => setRole('TUTOR')}
-                    >
-                      <input
-                        type="radio"
-                        name="modal-role"
-                        value="TUTOR"
-                        checked={role === 'TUTOR'}
-                        onChange={() => setRole('TUTOR')}
-                      />
-                      <ShieldCheck size={18} color="#4f46e5" />
-                      <div>
-                        <strong>Department Tutor</strong>
-                        <div className="role-card-desc">Class scheduler, file uploads & reviews</div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="form-field">
-                  <label className="field-label">Department Enrollment *</label>
-                  <select
-                    value={departmentSlug}
-                    onChange={(e) => setDepartmentSlug(e.target.value)}
-                    className="input-clean"
-                    required
+              </div>
+            ) : (
+              <form onSubmit={handleCreateUser}>
+                <div className="modal-body">
+                  <div
+                    style={{
+                      background: 'var(--primary-light)',
+                      border: '1px solid var(--primary-subtle)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '12px 14px',
+                      fontSize: '12px',
+                      color: 'var(--primary)',
+                      lineHeight: 1.5,
+                    }}
                   >
-                    {availableDepartments.map((dept) => (
-                      <option key={dept.slug} value={dept.slug}>
-                        {dept.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="field-help-text">
-                    Enforces single-department membership isolation.
-                  </span>
-                </div>
-              </div>
+                    <strong>Security Protocol:</strong> You do not need to assign a password. The user will receive an invitation containing a secure 24-hour one-time onboarding link to set their own password.
+                  </div>
 
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setShowCreateModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={modalSubmitting || !firstName.trim() || !lastName.trim() || !email.trim()}
-                >
-                  {modalSubmitting ? 'Creating & Sending...' : 'Create Account & Send Invite'}
-                </button>
-              </div>
-            </form>
+                  {modalError && <div className="form-error-banner">{modalError}</div>}
+                  {modalSuccess && (
+                    <div
+                      style={{
+                        background: 'var(--success-light)',
+                        border: '1px solid var(--success-border)',
+                        color: '#15803d',
+                        padding: '10px 14px',
+                        borderRadius: 'var(--radius-md)',
+                        fontSize: '13px',
+                      }}
+                    >
+                      {modalSuccess}
+                    </div>
+                  )}
+
+                  <div className="form-grid-2">
+                    <div className="form-field">
+                      <label className="field-label">First Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Jane"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="input-clean"
+                      />
+                    </div>
+                    <div className="form-field">
+                      <label className="field-label">Last Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Doe"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="input-clean"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-field">
+                    <label className="field-label">User Email Address *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@organization.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="input-clean"
+                    />
+                    <span className="field-help-text">
+                      The onboarding invitation link will be sent to this email address.
+                    </span>
+                  </div>
+
+                  <div className="form-field">
+                    <label className="field-label">Assigned Role *</label>
+                    <div className="role-selector-cards">
+                      <label
+                        className={`role-select-card ${role === 'INTERN' ? 'selected' : ''}`}
+                        onClick={() => setRole('INTERN')}
+                      >
+                        <input
+                          type="radio"
+                          name="modal-role"
+                          value="INTERN"
+                          checked={role === 'INTERN'}
+                          onChange={() => setRole('INTERN')}
+                        />
+                        <GraduationCap size={18} color="#10b981" />
+                        <div>
+                          <strong>Intern / Student</strong>
+                          <div className="role-card-desc">Class timetable, materials & assignment submissions</div>
+                        </div>
+                      </label>
+
+                      <label
+                        className={`role-select-card ${role === 'TUTOR' ? 'selected' : ''}`}
+                        onClick={() => setRole('TUTOR')}
+                      >
+                        <input
+                          type="radio"
+                          name="modal-role"
+                          value="TUTOR"
+                          checked={role === 'TUTOR'}
+                          onChange={() => setRole('TUTOR')}
+                        />
+                        <ShieldCheck size={18} color="#4f46e5" />
+                        <div>
+                          <strong>Department Tutor</strong>
+                          <div className="role-card-desc">Class scheduler, file uploads & reviews</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="form-field">
+                    <label className="field-label">Department Enrollment *</label>
+                    <select
+                      value={departmentSlug}
+                      onChange={(e) => setDepartmentSlug(e.target.value)}
+                      className="input-clean"
+                      required
+                    >
+                      {availableDepartments.map((dept) => (
+                        <option key={dept.slug} value={dept.slug}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="field-help-text">
+                      Enforces single-department membership isolation.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setShowCreateModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={modalSubmitting || !firstName.trim() || !lastName.trim() || !email.trim()}
+                  >
+                    {modalSubmitting ? 'Creating & Sending...' : 'Create Account & Send Invite'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

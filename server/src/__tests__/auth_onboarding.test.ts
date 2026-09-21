@@ -209,6 +209,40 @@ describe('Knowvia Admin-Controlled Account Creation & Onboarding Security', () =
       expect(res.body.error).toMatch(/Invalid credentials or inactive account/i);
     });
 
+    it('preserves created user and returns onboardingUrl when email dispatch fails', async () => {
+      const failEmail = 'test-onboarding-emailfail@knowvia.internal';
+      // Temporarily mock emailTransporter.sendMail to simulate SMTP failure (e.g. Render port blocking)
+      sendMailMock.mockImplementationOnce(async () => {
+        throw new Error('Connection timed out ETIMEDOUT 142.250.185.108:587');
+      });
+
+      const res = await request(app)
+        .post('/api/v1/admin/users')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          email: failEmail,
+          firstName: 'Fallback',
+          lastName: 'User',
+          role: 'INTERN',
+          departmentSlug: 'cybersecurity',
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.emailSent).toBe(false);
+      expect(res.body.onboardingUrl).toBeDefined();
+      expect(res.body.onboardingUrl).toContain('/onboarding?token=');
+
+      // Verify user is preserved in DB in pending state
+      const dbUser = await prisma.user.findUnique({
+        where: { email: failEmail },
+      });
+      expect(dbUser).not.toBeNull();
+      expect(dbUser?.isActive).toBe(false);
+
+      // Clean up test user
+      await prisma.user.delete({ where: { email: failEmail } }).catch(() => {});
+    });
+
     // ─── 3. ONBOARDING VERIFICATION & COMPLETION ───────────────
     it('verifies valid onboarding token and returns safe account metadata', async () => {
       const res = await request(app).post('/api/v1/auth/onboarding/verify').send({

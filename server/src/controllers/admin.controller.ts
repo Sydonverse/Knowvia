@@ -2,7 +2,7 @@ import { Response } from 'express';
 import prisma from '../config/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { generateSecureToken, hashToken } from '../utils/token.utils';
-import { sendOnboardingEmail } from '../services/email.service';
+import { sendOnboardingEmail, getOnboardingUrl } from '../services/email.service';
 
 /**
  * POST /api/v1/admin/users
@@ -81,7 +81,11 @@ export const createUser = async (req: AuthRequest, res: Response): Promise<void>
       return { newUser: user, invitation: inv };
     }, { maxWait: 10000, timeout: 20000 });
 
-    // 5. Dispatch onboarding invitation email via Nodemailer
+    const onboardingUrl = getOnboardingUrl(rawToken);
+
+    // 5. Dispatch onboarding invitation email
+    let emailSent = false;
+    let emailErrorMsg: string | null = null;
     try {
       await sendOnboardingEmail({
         to: normalizedEmail,
@@ -90,21 +94,20 @@ export const createUser = async (req: AuthRequest, res: Response): Promise<void>
         departmentName: department.name,
         rawToken,
       });
+      emailSent = true;
     } catch (emailError: any) {
-      // Rollback newly created user and invitation so the admin can retry without 409 conflict
-      console.error('Rolling back user creation due to email failure:', emailError.message);
-      await prisma.user.delete({ where: { id: newUser.id } }).catch(() => {});
-
-      res.status(502).json({
-        error:
-          'Failed to dispatch onboarding invitation email. The pending user was not created. Please verify your SMTP configuration.',
-        details: emailError.message,
-      });
-      return;
+      console.error('Email dispatch failed during user creation:', emailError.message || emailError);
+      emailSent = false;
+      emailErrorMsg = emailError.message || 'Email delivery failed';
     }
 
     res.status(201).json({
-      message: 'User account created and onboarding invitation sent successfully.',
+      message: emailSent
+        ? 'User account created and onboarding invitation sent successfully.'
+        : 'User account created, but the invitation email could not be delivered automatically. You can copy the onboarding link and share it directly.',
+      emailSent,
+      emailWarning: emailSent ? null : emailErrorMsg,
+      onboardingUrl,
       user: {
         id: newUser.id,
         email: newUser.email,
@@ -245,7 +248,11 @@ export const resendInvitation = async (req: AuthRequest, res: Response): Promise
       },
     });
 
+    const onboardingUrl = getOnboardingUrl(rawToken);
+
     // Send email
+    let emailSent = false;
+    let emailErrorMsg: string | null = null;
     try {
       await sendOnboardingEmail({
         to: user.email,
@@ -254,18 +261,20 @@ export const resendInvitation = async (req: AuthRequest, res: Response): Promise
         departmentName,
         rawToken,
       });
+      emailSent = true;
     } catch (emailError: any) {
-      // Remove the newly created invitation on failure
-      await prisma.onboardingInvitation.delete({ where: { id: newInvitation.id } }).catch(() => {});
-      res.status(502).json({
-        error: 'Failed to send onboarding email. Please check SMTP settings.',
-        details: emailError.message,
-      });
-      return;
+      console.error('Email dispatch failed during resendInvitation:', emailError.message || emailError);
+      emailSent = false;
+      emailErrorMsg = emailError.message || 'Email delivery failed';
     }
 
     res.json({
-      message: 'A new onboarding invitation has been sent successfully.',
+      message: emailSent
+        ? 'A new onboarding invitation has been sent successfully.'
+        : 'A new onboarding invitation has been generated, but the email could not be delivered. You can copy the onboarding link and share it directly.',
+      emailSent,
+      emailWarning: emailSent ? null : emailErrorMsg,
+      onboardingUrl,
       invitationExpiresAt: newInvitation.expiresAt,
     });
   } catch (error) {

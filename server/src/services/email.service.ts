@@ -15,7 +15,24 @@ export interface SendPasswordResetEmailOptions {
 }
 
 /**
+ * Generates the full onboarding link from a raw token.
+ */
+export const getOnboardingUrl = (rawToken: string): string => {
+  const appUrl = (process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
+  return `${appUrl}/onboarding?token=${encodeURIComponent(rawToken)}`;
+};
+
+/**
+ * Generates the full password reset link from a raw token.
+ */
+export const getPasswordResetUrl = (rawToken: string): string => {
+  const appUrl = (process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
+  return `${appUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
+};
+
+/**
  * Creates and returns a Nodemailer transporter configured via environment variables.
+ * Includes explicit timeouts (8s) so blocked ports do not hang indefinitely.
  */
 export const createEmailTransporter = () => {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
@@ -35,16 +52,112 @@ export const createEmailTransporter = () => {
     tls: {
       rejectUnauthorized: false,
     },
+    connectionTimeout: 8000, // 8s timeout to connect
+    greetingTimeout: 8000,   // 8s timeout for greeting
+    socketTimeout: 8000,     // 8s socket idle timeout
   });
 };
 
 // Singleton transporter instance for the application
 export const emailTransporter = createEmailTransporter();
 
+export interface DispatchEmailPayload {
+  to: string;
+  recipientName: string;
+  subject: string;
+  textContent: string;
+  htmlContent: string;
+}
+
+/**
+ * Dispatches an email using the optimal available transport:
+ * 1. Brevo REST API (HTTPS port 443 - works on Render free tier)
+ * 2. Resend REST API (HTTPS port 443 - works on Render free tier)
+ * 3. Nodemailer SMTP (Default / Local fallback)
+ */
+export const dispatchEmail = async (
+  payload: DispatchEmailPayload
+): Promise<{ success: boolean; method: string; id?: string }> => {
+  const brevoApiKey = process.env.BREVO_API_KEY;
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const senderEmail = process.env.SMTP_USER || 'knowvia.testing@gmail.com';
+  const senderName = 'Knowvia';
+
+  // 1. Check Brevo REST API (HTTPS Port 443)
+  if (brevoApiKey) {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': brevoApiKey,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: senderName, email: senderEmail },
+        to: [{ email: payload.to, name: payload.recipientName }],
+        subject: payload.subject,
+        htmlContent: payload.htmlContent,
+        textContent: payload.textContent,
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Brevo API error (${res.status}): ${errorText}`);
+    }
+    const data: any = await res.json();
+    return { success: true, method: 'brevo-https', id: data.messageId };
+  }
+
+  // 2. Check Resend REST API (HTTPS Port 443)
+  if (resendApiKey) {
+    const resendFrom =
+      process.env.RESEND_FROM ||
+      (senderEmail.includes('@gmail.com') ? 'Knowvia <onboarding@resend.dev>' : `${senderName} <${senderEmail}>`);
+
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: resendFrom,
+        to: [payload.to],
+        subject: payload.subject,
+        html: payload.htmlContent,
+        text: payload.textContent,
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Resend API error (${res.status}): ${errorText}`);
+    }
+    const data: any = await res.json();
+    return { success: true, method: 'resend-https', id: data.id };
+  }
+
+  // 3. Nodemailer SMTP Fallback
+  const info = await emailTransporter.sendMail({
+    from: `"${senderName}" <${senderEmail}>`,
+    to: payload.to,
+    subject: payload.subject,
+    text: payload.textContent,
+    html: payload.htmlContent,
+  });
+
+  return { success: true, method: 'smtp', id: info.messageId };
+};
+
 /**
  * Sends a branded Knowvia onboarding invitation email with the secure one-time activation link.
  */
-export const sendOnboardingEmail = async (options: SendOnboardingEmailOptions): Promise<void> => {
+export const sendOnboardingEmail = async (
+  options: SendOnboardingEmailOptions
+): Promise<{ success: boolean; onboardingUrl: string; method: string }> => {
   const { to, recipientName, role, departmentName, rawToken } = options;
 
   const appUrl = (process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -286,28 +399,29 @@ Knowvia Knowledge Repository & Learning Management Platform
 </html>`;
 
   try {
-    await emailTransporter.sendMail({
-      from: `"Knowvia" <${senderUser}>`,
+    const result = await dispatchEmail({
       to,
+      recipientName,
       subject,
-      text: textContent,
-      html: htmlContent,
+      textContent,
+      htmlContent,
     });
+    return { success: true, onboardingUrl, method: result.method };
   } catch (error: any) {
     console.error('Failed to send onboarding email:', error.message || error);
-    throw new Error(`Email delivery failed: ${error.message || 'SMTP service error'}`);
+    throw new Error(`Email delivery failed: ${error.message || 'Email delivery service error'}`);
   }
 };
 
 /**
  * Sends a password reset email with secure token link.
  */
-export const sendPasswordResetEmail = async (options: SendPasswordResetEmailOptions): Promise<void> => {
+export const sendPasswordResetEmail = async (
+  options: SendPasswordResetEmailOptions
+): Promise<{ success: boolean; resetUrl: string; method: string }> => {
   const { to, recipientName, rawToken } = options;
 
-  const appUrl = (process.env.APP_URL || process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
-  const senderUser = process.env.SMTP_USER || 'knowvia.testing@gmail.com';
-  const resetUrl = `${appUrl}/reset-password?token=${encodeURIComponent(rawToken)}`;
+  const resetUrl = getPasswordResetUrl(rawToken);
 
   const subject = `Knowvia — Password Reset Request`;
 
@@ -357,15 +471,16 @@ Knowvia Platform
 </html>`;
 
   try {
-    await emailTransporter.sendMail({
-      from: `"Knowvia" <${senderUser}>`,
+    const result = await dispatchEmail({
       to,
+      recipientName,
       subject,
-      text: textContent,
-      html: htmlContent,
+      textContent,
+      htmlContent,
     });
+    return { success: true, resetUrl, method: result.method };
   } catch (error: any) {
     console.error('Failed to send password reset email:', error.message || error);
-    throw new Error(`Email delivery failed: ${error.message || 'SMTP service error'}`);
+    throw new Error(`Email delivery failed: ${error.message || 'Email delivery service error'}`);
   }
 };
