@@ -369,6 +369,10 @@ export const App: React.FC = () => {
       setAssignments((prev) => prev.filter((a) => a.id !== data.id));
     });
 
+    const unsubAssignUpd = socketService.onAssignmentUpdated((assign) => {
+      setAssignments((prev) => prev.map((a) => (a.id === assign.id ? { ...a, ...assign } : a)));
+    });
+
     const unsubMatNew = socketService.onNewMaterial((mat) => {
       setMaterials((prev) => (prev.some((m) => m.id === mat.id) ? prev : [mat, ...prev]));
       fetchNotifications();
@@ -395,6 +399,7 @@ export const App: React.FC = () => {
       unsubSchedUpd();
       unsubSchedDel();
       unsubAssignNew();
+      unsubAssignUpd();
       unsubAssignDel();
       unsubMatNew();
       unsubMatDel();
@@ -500,6 +505,16 @@ export const App: React.FC = () => {
     if (!activeDept || !confirm('Are you sure you want to delete this assignment?')) return;
     await api.assignments.delete(activeDept.slug, assignmentId);
     setAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
+  };
+
+  const handleUpdateAssignment = async (assignmentId: string, data: any) => {
+    if (!activeDept) return;
+    const res = await api.assignments.update(activeDept.slug, assignmentId, data);
+    if (res.assignment) {
+      setAssignments((prev) =>
+        prev.map((a) => (a.id === res.assignment.id ? { ...a, ...res.assignment } : a))
+      );
+    }
   };
 
   const handleCreateAnnouncement = async (data: any) => {
@@ -833,6 +848,7 @@ export const App: React.FC = () => {
                   onSubmitAssignment={handleSubmitAssignment}
                   onReviewSubmission={handleReviewSubmission}
                   onDeleteAssignment={handleDeleteAssignment}
+                  onUpdateAssignment={handleUpdateAssignment}
                   selectedAssignmentId={selectedAssignmentId}
                 />
               )}

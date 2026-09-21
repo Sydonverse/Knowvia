@@ -36,6 +36,7 @@ import {
 import {
   listAssignments,
   createAssignment,
+  updateAssignment,
   submitAssignment,
   reviewSubmission,
   deleteAssignment,
@@ -89,6 +90,7 @@ router.post(
   departmentAccessGuard,
   reviewSubmission
 );
+router.put('/:slug/assignments/:assignmentId', authenticate, departmentAccessGuard, updateAssignment);
 router.delete('/:slug/assignments/:assignmentId', authenticate, departmentAccessGuard, deleteAssignment);
 
 // Chat Messages

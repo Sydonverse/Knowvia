@@ -439,3 +439,77 @@ export const deleteAssignment = async (req: AuthRequest, res: Response): Promise
     res.status(500).json({ error: 'Failed to delete assignment' });
   }
 };
+
+export const updateAssignment = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { assignmentId } = req.params;
+    const { title, description, dueDate, maxFileSize, status } = req.body;
+    const user = req.user;
+
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    if (user.role !== 'TUTOR' && user.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Forbidden: Only tutors and administrators can edit assignments' });
+      return;
+    }
+
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      include: { department: { select: { slug: true } } },
+    });
+
+    if (!assignment) {
+      res.status(404).json({ error: 'Assignment not found' });
+      return;
+    }
+
+    if (user.role !== 'ADMIN' && assignment.createdById !== user.id) {
+      res.status(403).json({ error: 'Forbidden: You can only edit assignments you created' });
+      return;
+    }
+
+    const updatedAssignment = await prisma.assignment.update({
+      where: { id: assignmentId },
+      data: {
+        ...(title !== undefined && { title: title.trim() }),
+        ...(description !== undefined && { description: description.trim() }),
+        ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
+        ...(maxFileSize !== undefined && { maxFileSize: parseInt(maxFileSize, 10) }),
+        ...(status !== undefined && { status }),
+      },
+      include: {
+        creator: {
+          select: { id: true, firstName: true, lastName: true, role: true },
+        },
+        submissions: {
+          include: {
+            submitter: {
+              select: { id: true, firstName: true, lastName: true, role: true },
+            },
+            reviews: {
+              include: {
+                reviewer: {
+                  select: { id: true, firstName: true, lastName: true, role: true },
+                },
+              },
+              orderBy: { createdAt: 'desc' },
+            },
+          },
+        },
+      },
+    });
+
+    const io = getIO();
+    if (io) {
+      io.to(`dept:${assignment.department.slug}`).emit('assignment:updated', updatedAssignment);
+    }
+
+    res.json({ assignment: updatedAssignment });
+  } catch (error) {
+    console.error('Update assignment error:', error);
+    res.status(500).json({ error: 'Failed to update assignment' });
+  }
+};

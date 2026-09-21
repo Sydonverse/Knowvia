@@ -1784,6 +1784,180 @@
   color: var(--text-muted);
 }
 
+/* Assignment Tutor Management Actions & Header Edit */
+.assignment-tutor-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.assignment-tutor-actions .btn-icon-danger {
+  width: auto;
+  height: auto;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  color: var(--danger, #ef4444);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.assignment-tutor-actions .btn-icon-danger:hover {
+  background: var(--danger-light, #fef2f2);
+  color: var(--danger, #dc2626);
+  border-color: #fca5a5;
+}
+
+.btn-icon-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-icon-edit:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary-subtle);
+}
+
+.btn-icon-header-edit {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+}
+
+.btn-icon-header-edit:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+/* Submitted Assignments Collapsible Accordion (Intern View) */
+.submitted-assignments-accordion {
+  margin-top: 24px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-subtle);
+  overflow: hidden;
+  transition: var(--transition-fast);
+}
+
+.submitted-assignments-accordion:hover {
+  border-color: var(--border-medium);
+}
+
+.submitted-dropdown-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-surface);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: left;
+}
+
+.submitted-dropdown-trigger:hover {
+  background: var(--bg-hover, #f8fafc);
+}
+
+.submitted-dropdown-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.submitted-dropdown-icon {
+  color: #10b981;
+  display: flex;
+  align-items: center;
+}
+
+.submitted-dropdown-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.submitted-badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.submitted-dropdown-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.submitted-dropdown-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.submitted-dropdown-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.empty-pending-assignments-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: #f0fdf4;
+  border: 1px dashed #86efac;
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+}
+
+.empty-pending-text h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #166534;
+  margin: 0 0 4px 0;
+}
+
+.empty-pending-text p {
+  font-size: 13px;
+  color: #15803d;
+  margin: 0;
+}
+
 /* ─── CHAT VIEW ───────────────────────────────────────────── */
 .chat-view-layout {
   height: calc(100vh - 120px);

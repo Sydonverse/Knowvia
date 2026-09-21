@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Upload,
   Calendar,
@@ -11,7 +11,7 @@ import {
   MapPin,
   Sparkles,
 } from 'lucide-react';
-import { DepartmentMemberContext } from '../types';
+import { DepartmentMemberContext, Assignment } from '../types';
 
 // ─── 1. UPLOAD LEARNING MATERIAL MODAL ─────────────────────────
 interface UploadMaterialModalProps {
@@ -434,6 +434,135 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({
             </button>
             <button type="submit" className="btn-primary" disabled={isSubmitting}>
               {isSubmitting ? 'Publishing...' : 'Publish Assignment'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ─── 3b. EDIT ASSIGNMENT MODAL ────────────────────────────────
+interface EditAssignmentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (assignmentId: string, data: any) => Promise<void>;
+  assignment: Assignment | null;
+}
+
+export const EditAssignmentModal: React.FC<EditAssignmentModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  assignment,
+}) => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (assignment) {
+      setTitle(assignment.title || '');
+      setDescription(assignment.description || '');
+      if (assignment.dueDate) {
+        const d = new Date(assignment.dueDate);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        setDueDate(`${yyyy}-${mm}-${dd}`);
+      } else {
+        setDueDate('');
+      }
+      setError('');
+    }
+  }, [assignment]);
+
+  if (!isOpen || !assignment) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !description.trim()) {
+      setError('Title and description are required.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      await onSubmit(assignment.id, {
+        title: title.trim(),
+        description: description.trim(),
+        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+      });
+      onClose();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update assignment');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-dialog">
+        <div className="modal-header">
+          <div className="modal-title-group">
+            <ClipboardCheck size={18} color="#4f46e5" />
+            <h3 className="modal-title">Edit Assignment Details</h3>
+          </div>
+          <button className="btn-close-modal" onClick={onClose} disabled={isSubmitting}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body">
+            {error && <div className="form-error-banner">{error}</div>}
+
+            <div className="form-field">
+              <label className="field-label">Assignment Title *</label>
+              <input
+                type="text"
+                placeholder="e.g., Enterprise Vulnerability Assessment Report"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="input-clean"
+              />
+            </div>
+
+            <div className="form-field">
+              <label className="field-label">Instructions & Deliverable Requirements *</label>
+              <textarea
+                rows={4}
+                placeholder="Detail the technical tasks, methodology, required file format, and grading rubric..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                className="textarea-clean"
+              />
+            </div>
+
+            <div className="form-field">
+              <label className="field-label">Submission Deadline (Optional)</label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="input-clean"
+              />
+            </div>
+          </div>
+
+          <div className="modal-footer">
+            <button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
             </button>
           </div>
         </form>

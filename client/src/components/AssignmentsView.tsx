@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ClipboardCheck,
   Plus,
@@ -15,6 +15,7 @@ import {
   User as UserIcon,
   RefreshCw,
   Sparkles,
+  Edit3,
 } from 'lucide-react';
 import {
   Assignment,
@@ -24,6 +25,7 @@ import {
   SubmissionVerdict,
 } from '../types';
 import { getFileUrl } from '../utils/file';
+import { EditAssignmentModal } from './Modals';
 
 interface AssignmentsViewProps {
   assignments: Assignment[];
@@ -37,6 +39,7 @@ interface AssignmentsViewProps {
     data: { comment: string; verdict: SubmissionVerdict }
   ) => Promise<void>;
   onDeleteAssignment: (assignmentId: string) => void;
+  onUpdateAssignment?: (assignmentId: string, data: any) => Promise<void>;
   selectedAssignmentId?: string | null;
 }
 
@@ -48,6 +51,7 @@ export const AssignmentsView: React.FC<AssignmentsViewProps> = ({
   onSubmitAssignment,
   onReviewSubmission,
   onDeleteAssignment,
+  onUpdateAssignment,
   selectedAssignmentId,
 }) => {
   const isTutorOrAdmin = currentUser?.role === 'TUTOR' || currentUser?.role === 'ADMIN';
@@ -72,6 +76,33 @@ export const AssignmentsView: React.FC<AssignmentsViewProps> = ({
   const [reviewVerdict, setReviewVerdict] = useState<SubmissionVerdict>('APPROVED');
   const [reviewComment, setReviewComment] = useState('');
   const [isReviewing, setIsReviewing] = useState(false);
+
+  // Tutor edit assignment modal state
+  const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
+
+  // Intern submitted assignments dropdown accordion
+  const [showSubmittedDropdown, setShowSubmittedDropdown] = useState<boolean>(() => {
+    if (selectedAssignmentId && !isTutorOrAdmin) {
+      return assignments.some(
+        (a) => a.id === selectedAssignmentId && a.submissions.some((s) => s.submittedById === currentUser?.id)
+      );
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (selectedAssignmentId) {
+      setExpandedId(selectedAssignmentId);
+      if (
+        !isTutorOrAdmin &&
+        assignments.some(
+          (a) => a.id === selectedAssignmentId && a.submissions.some((s) => s.submittedById === currentUser?.id)
+        )
+      ) {
+        setShowSubmittedDropdown(true);
+      }
+    }
+  }, [selectedAssignmentId, assignments, isTutorOrAdmin, currentUser?.id]);
 
   // Handle student submit
   const handleSubmitWork = async (assignmentId: string) => {
@@ -139,6 +170,348 @@ export const AssignmentsView: React.FC<AssignmentsViewProps> = ({
     }
   };
 
+  // Partition assignments for Interns vs Tutors/Admins
+  const pendingAssignments = !isTutorOrAdmin
+    ? assignments.filter((a) => !a.submissions.some((s) => s.submittedById === currentUser?.id))
+    : assignments;
+
+  const submittedAssignments = !isTutorOrAdmin
+    ? assignments.filter((a) => a.submissions.some((s) => s.submittedById === currentUser?.id))
+    : [];
+
+  const renderAssignmentCard = (assignment: Assignment) => {
+    const isExpanded = expandedId === assignment.id;
+    const mySubmission = !isTutorOrAdmin
+      ? assignment.submissions.find((s) => s.submittedById === currentUser?.id)
+      : null;
+
+    return (
+      <div
+        key={assignment.id}
+        id={`assignment-${assignment.id}`}
+        className={`assignment-card-item ${isExpanded ? 'assignment-card-expanded' : ''}`}
+      >
+        {/* Assignment Top Header */}
+        <div
+          className="assignment-header-row"
+          onClick={() => setExpandedId(isExpanded ? null : assignment.id)}
+        >
+          <div className="assignment-header-left">
+            <div className="assignment-icon-badge">
+              <ClipboardCheck size={18} color="#4f46e5" />
+            </div>
+            <div>
+              <div className="assignment-title-row">
+                <h3 className="assignment-item-title">{assignment.title}</h3>
+                {!isTutorOrAdmin && (
+                  <div className="my-sub-tag">
+                    {mySubmission ? getVerdictTag(mySubmission.status) : getVerdictTag('NOT_SUBMITTED')}
+                  </div>
+                )}
+              </div>
+
+              <div className="assignment-meta-row">
+                {assignment.dueDate && (
+                  <span className="assignment-due-meta">
+                    <Clock size={13} />
+                    <span>
+                      Due: {new Date(assignment.dueDate).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </span>
+                )}
+
+                <span className="assignment-creator-meta">
+                  Assigned by: {assignment.creator?.firstName} {assignment.creator?.lastName}
+                </span>
+
+                {isTutorOrAdmin && (
+                  <span className="submissions-count-meta">
+                    Submissions: <strong>{assignment.submissions.length}</strong>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="assignment-header-right">
+            {isTutorOrAdmin && onUpdateAssignment && (
+              <button
+                type="button"
+                className="btn-icon-header-edit"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingAssignment(assignment);
+                }}
+                title="Edit Assignment Details"
+              >
+                <Edit3 size={15} />
+              </button>
+            )}
+            <button className="btn-toggle-icon" aria-label={isExpanded ? 'Collapse' : 'Expand'}>
+              {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Expanded Details Panel */}
+        {isExpanded && (
+          <div className="assignment-expanded-body">
+            <div className="assignment-desc-box">
+              <div className="desc-label">Assignment Brief & Instructions</div>
+              <p className="assignment-desc-text">{assignment.description}</p>
+            </div>
+
+            {/* INTERN VIEW: SUBMISSION SECTION */}
+            {!isTutorOrAdmin && (
+              <div className="student-submission-section">
+                <h4 className="section-subtitle-sm">
+                  <Upload size={16} />
+                  <span>My Submission</span>
+                </h4>
+
+                {mySubmission ? (
+                  <div className="my-submission-card">
+                    <div className="sub-card-header">
+                      <div>
+                        <span className="sub-date">
+                          Submitted on {new Date(mySubmission.submittedAt).toLocaleDateString()}
+                        </span>
+                        <div className="mt-1">{getVerdictTag(mySubmission.status)}</div>
+                      </div>
+
+                      {mySubmission.fileUrl && (
+                        <a
+                          href={getFileUrl(mySubmission.fileUrl)}
+                          download={mySubmission.fileName || 'submission.bin'}
+                          className="btn-download-pill"
+                        >
+                          <Download size={14} />
+                          <span>Download Submitted File</span>
+                        </a>
+                      )}
+                    </div>
+
+                    {mySubmission.notes && (
+                      <div className="sub-notes-box">
+                        <strong>My Notes: </strong>
+                        <span>{mySubmission.notes}</span>
+                      </div>
+                    )}
+
+                    {/* Reviews & Feedback from Tutor */}
+                    {mySubmission.reviews && mySubmission.reviews.length > 0 ? (
+                      <div className="feedback-thread">
+                        <div className="feedback-thread-title">Tutor Feedback:</div>
+                        {mySubmission.reviews.map((rev) => (
+                          <div key={rev.id} className="feedback-item">
+                            <div className="feedback-header">
+                              <span>
+                                Reviewed by {rev.reviewer?.firstName} {rev.reviewer?.lastName}
+                              </span>
+                              <span>{getVerdictTag(rev.verdict)}</span>
+                            </div>
+                            <p className="feedback-comment">"{rev.comment}"</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="feedback-waiting">
+                        <Clock size={14} />
+                        <span>Your tutor has not reviewed this submission yet.</span>
+                      </div>
+                    )}
+
+                    {/* Resubmit Option if Needs Revision */}
+                    {mySubmission.status === 'NEEDS_REVISION' && (
+                      <div className="resubmit-prompt">
+                        <button
+                          className="btn-secondary btn-sm"
+                          onClick={() => setSubmittingId(assignment.id)}
+                        >
+                          <RefreshCw size={14} />
+                          <span>Upload Revised Submission</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="not-submitted-card">
+                    <p>You have not submitted this assignment yet.</p>
+                    <button
+                      className="btn-primary btn-sm"
+                      onClick={() => setSubmittingId(assignment.id)}
+                    >
+                      <Upload size={14} />
+                      <span>Submit Your Work</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Submission Form Modal/Expand */}
+                {submittingId === assignment.id && (
+                  <div className="submission-form-container">
+                    <h4 className="form-heading">Submit Work for: {assignment.title}</h4>
+                    <p className="form-subtext">
+                      Upload any file format (code archive, document, PDF, etc.) up to 25MB limit.
+                    </p>
+
+                    {submitError && <div className="form-error-banner">{submitError}</div>}
+
+                    <div className="form-field">
+                      <label className="field-label">Deliverable File (25MB max)</label>
+                      <input
+                        type="file"
+                        onChange={(e) => setSubmitFile(e.target.files?.[0] || null)}
+                        className="file-input-clean"
+                      />
+                    </div>
+
+                    <div className="form-field">
+                      <label className="field-label">Submission Notes & Implementation Summary</label>
+                      <textarea
+                        rows={3}
+                        placeholder="Explain your approach, testing steps, or specific notes for your tutor..."
+                        value={submitNotes}
+                        onChange={(e) => setSubmitNotes(e.target.value)}
+                        className="textarea-clean"
+                      />
+                    </div>
+
+                    <div className="form-actions-row">
+                      <button
+                        className="btn-secondary btn-sm"
+                        onClick={() => {
+                          setSubmittingId(null);
+                          setSubmitError('');
+                        }}
+                        disabled={isSubmitting}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="btn-primary btn-sm"
+                        onClick={() => handleSubmitWork(assignment.id)}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? 'Uploading...' : 'Submit Deliverable'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TUTOR / ADMIN VIEW: SUBMISSIONS REVIEW LIST */}
+            {isTutorOrAdmin && (
+              <div className="tutor-submissions-section">
+                <div className="section-header-flex">
+                  <h4 className="section-subtitle-sm">
+                    <UserIcon size={16} />
+                    <span>Student Submissions ({assignment.submissions.length})</span>
+                  </h4>
+                  <div className="assignment-tutor-actions">
+                    {onUpdateAssignment && (
+                      <button
+                        type="button"
+                        className="btn-icon-edit"
+                        onClick={() => setEditingAssignment(assignment)}
+                        title="Edit Assignment Details"
+                      >
+                        <Edit3 size={14} />
+                        <span>Edit Details</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="btn-icon-danger"
+                      onClick={() => onDeleteAssignment(assignment.id)}
+                      title="Delete Assignment"
+                    >
+                      <Trash2 size={15} />
+                      <span style={{ fontSize: '0.8rem', marginLeft: '4px' }}>Delete Assignment</span>
+                    </button>
+                  </div>
+                </div>
+
+                {assignment.submissions.length === 0 ? (
+                  <div className="empty-sub-text">
+                    No students have submitted deliverables for this assignment yet.
+                  </div>
+                ) : (
+                  <div className="submissions-table-wrapper">
+                    <table className="submissions-table">
+                      <thead>
+                        <tr>
+                          <th>Student</th>
+                          <th>Date</th>
+                          <th>Status</th>
+                          <th>Deliverable</th>
+                          <th>Notes</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {assignment.submissions.map((sub) => (
+                          <tr key={sub.id}>
+                            <td>
+                              <strong>
+                                {sub.submitter?.firstName} {sub.submitter?.lastName}
+                              </strong>
+                              <div className="student-email-sub">{sub.submitter?.email}</div>
+                            </td>
+                            <td>{new Date(sub.submittedAt).toLocaleDateString()}</td>
+                            <td>{getVerdictTag(sub.status)}</td>
+                            <td>
+                              {sub.fileUrl ? (
+                                <a
+                                  href={getFileUrl(sub.fileUrl)}
+                                  download={sub.fileName || 'submission.bin'}
+                                  className="btn-link-sm"
+                                >
+                                  <Download size={13} />
+                                  <span>{sub.fileName}</span>
+                                </a>
+                              ) : (
+                                <span className="text-muted">No file</span>
+                              )}
+                            </td>
+                            <td>
+                              <span className="notes-snippet" title={sub.notes}>
+                                {sub.notes ? `${sub.notes.slice(0, 40)}...` : '—'}
+                              </span>
+                            </td>
+                            <td>
+                              <button
+                                className="btn-secondary btn-xs"
+                                onClick={() =>
+                                  setReviewingSubmission({
+                                    assignmentId: assignment.id,
+                                    submission: sub,
+                                  })
+                                }
+                              >
+                                <MessageSquare size={13} />
+                                <span>Review</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="view-container">
       {/* Header */}
@@ -177,313 +550,56 @@ export const AssignmentsView: React.FC<AssignmentsViewProps> = ({
             </button>
           )}
         </div>
+      ) : isTutorOrAdmin ? (
+        <div className="assignments-list-container">
+          {assignments.map(renderAssignmentCard)}
+        </div>
       ) : (
         <div className="assignments-list-container">
-          {assignments.map((assignment) => {
-            const isExpanded = expandedId === assignment.id;
-            const mySubmission = !isTutorOrAdmin
-              ? assignment.submissions.find((s) => s.submittedById === currentUser?.id)
-              : null;
-
-            return (
-              <div
-                key={assignment.id}
-                id={`assignment-${assignment.id}`}
-                className={`assignment-card-item ${isExpanded ? 'assignment-card-expanded' : ''}`}
-              >
-                {/* Assignment Top Header */}
-                <div
-                  className="assignment-header-row"
-                  onClick={() => setExpandedId(isExpanded ? null : assignment.id)}
-                >
-                  <div className="assignment-header-left">
-                    <div className="assignment-icon-badge">
-                      <ClipboardCheck size={18} color="#4f46e5" />
-                    </div>
-                    <div>
-                      <div className="assignment-title-row">
-                        <h3 className="assignment-item-title">{assignment.title}</h3>
-                        {!isTutorOrAdmin && (
-                          <div className="my-sub-tag">
-                            {mySubmission ? getVerdictTag(mySubmission.status) : getVerdictTag('NOT_SUBMITTED')}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="assignment-meta-row">
-                        {assignment.dueDate && (
-                          <span className="assignment-due-meta">
-                            <Clock size={13} />
-                            <span>
-                              Due: {new Date(assignment.dueDate).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                              })}
-                            </span>
-                          </span>
-                        )}
-
-                        <span className="assignment-creator-meta">
-                          Assigned by: {assignment.creator?.firstName} {assignment.creator?.lastName}
-                        </span>
-
-                        {isTutorOrAdmin && (
-                          <span className="submissions-count-meta">
-                            Submissions: <strong>{assignment.submissions.length}</strong>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="assignment-header-right">
-                    <button className="btn-toggle-icon">
-                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Expanded Details Panel */}
-                {isExpanded && (
-                  <div className="assignment-expanded-body">
-                    <div className="assignment-desc-box">
-                      <div className="desc-label">Assignment Brief & Instructions</div>
-                      <p className="assignment-desc-text">{assignment.description}</p>
-                    </div>
-
-                    {/* INTERN VIEW: SUBMISSION SECTION */}
-                    {!isTutorOrAdmin && (
-                      <div className="student-submission-section">
-                        <h4 className="section-subtitle-sm">
-                          <Upload size={16} />
-                          <span>My Submission</span>
-                        </h4>
-
-                        {mySubmission ? (
-                          <div className="my-submission-card">
-                            <div className="sub-card-header">
-                              <div>
-                                <span className="sub-date">
-                                  Submitted on {new Date(mySubmission.submittedAt).toLocaleDateString()}
-                                </span>
-                                <div className="mt-1">{getVerdictTag(mySubmission.status)}</div>
-                              </div>
-
-                              {mySubmission.fileUrl && (
-                                <a
-                                  href={getFileUrl(mySubmission.fileUrl)}
-                                  download={mySubmission.fileName || 'submission.bin'}
-                                  className="btn-download-pill"
-                                >
-                                  <Download size={14} />
-                                  <span>Download Submitted File</span>
-                                </a>
-                              )}
-                            </div>
-
-                            {mySubmission.notes && (
-                              <div className="sub-notes-box">
-                                <strong>My Notes: </strong>
-                                <span>{mySubmission.notes}</span>
-                              </div>
-                            )}
-
-                            {/* Reviews & Feedback from Tutor */}
-                            {mySubmission.reviews && mySubmission.reviews.length > 0 ? (
-                              <div className="feedback-thread">
-                                <div className="feedback-thread-title">Tutor Feedback:</div>
-                                {mySubmission.reviews.map((rev) => (
-                                  <div key={rev.id} className="feedback-item">
-                                    <div className="feedback-header">
-                                      <span>
-                                        Reviewed by {rev.reviewer?.firstName} {rev.reviewer?.lastName}
-                                      </span>
-                                      <span>{getVerdictTag(rev.verdict)}</span>
-                                    </div>
-                                    <p className="feedback-comment">"{rev.comment}"</p>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="feedback-waiting">
-                                <Clock size={14} />
-                                <span>Your tutor has not reviewed this submission yet.</span>
-                              </div>
-                            )}
-
-                            {/* Resubmit Option if Needs Revision */}
-                            {mySubmission.status === 'NEEDS_REVISION' && (
-                              <div className="resubmit-prompt">
-                                <button
-                                  className="btn-secondary btn-sm"
-                                  onClick={() => setSubmittingId(assignment.id)}
-                                >
-                                  <RefreshCw size={14} />
-                                  <span>Upload Revised Submission</span>
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="not-submitted-card">
-                            <p>You have not submitted this assignment yet.</p>
-                            <button
-                              className="btn-primary btn-sm"
-                              onClick={() => setSubmittingId(assignment.id)}
-                            >
-                              <Upload size={14} />
-                              <span>Submit Your Work</span>
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Submission Form Modal/Expand */}
-                        {submittingId === assignment.id && (
-                          <div className="submission-form-container">
-                            <h4 className="form-heading">Submit Work for: {assignment.title}</h4>
-                            <p className="form-subtext">
-                              Upload any file format (code archive, document, PDF, etc.) up to 25MB limit.
-                            </p>
-
-                            {submitError && <div className="form-error-banner">{submitError}</div>}
-
-                            <div className="form-field">
-                              <label className="field-label">Deliverable File (25MB max)</label>
-                              <input
-                                type="file"
-                                onChange={(e) => setSubmitFile(e.target.files?.[0] || null)}
-                                className="file-input-clean"
-                              />
-                            </div>
-
-                            <div className="form-field">
-                              <label className="field-label">Submission Notes & Implementation Summary</label>
-                              <textarea
-                                rows={3}
-                                placeholder="Explain your approach, testing steps, or specific notes for your tutor..."
-                                value={submitNotes}
-                                onChange={(e) => setSubmitNotes(e.target.value)}
-                                className="textarea-clean"
-                              />
-                            </div>
-
-                            <div className="form-actions-row">
-                              <button
-                                className="btn-secondary btn-sm"
-                                onClick={() => {
-                                  setSubmittingId(null);
-                                  setSubmitError('');
-                                }}
-                                disabled={isSubmitting}
-                              >
-                                Cancel
-                              </button>
-                              <button
-                                className="btn-primary btn-sm"
-                                onClick={() => handleSubmitWork(assignment.id)}
-                                disabled={isSubmitting}
-                              >
-                                {isSubmitting ? 'Uploading...' : 'Submit Deliverable'}
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* TUTOR / ADMIN VIEW: SUBMISSIONS REVIEW LIST */}
-                    {isTutorOrAdmin && (
-                      <div className="tutor-submissions-section">
-                        <div className="section-header-flex">
-                          <h4 className="section-subtitle-sm">
-                            <UserIcon size={16} />
-                            <span>Student Submissions ({assignment.submissions.length})</span>
-                          </h4>
-                          <button
-                            className="btn-icon-danger"
-                            onClick={() => onDeleteAssignment(assignment.id)}
-                            title="Delete Assignment"
-                          >
-                            <Trash2 size={15} />
-                            <span style={{ fontSize: '0.8rem', marginLeft: '4px' }}>Delete Assignment</span>
-                          </button>
-                        </div>
-
-                        {assignment.submissions.length === 0 ? (
-                          <div className="empty-sub-text">
-                            No students have submitted deliverables for this assignment yet.
-                          </div>
-                        ) : (
-                          <div className="submissions-table-wrapper">
-                            <table className="submissions-table">
-                              <thead>
-                                <tr>
-                                  <th>Student</th>
-                                  <th>Date</th>
-                                  <th>Status</th>
-                                  <th>Deliverable</th>
-                                  <th>Notes</th>
-                                  <th>Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {assignment.submissions.map((sub) => (
-                                  <tr key={sub.id}>
-                                    <td>
-                                      <strong>
-                                        {sub.submitter?.firstName} {sub.submitter?.lastName}
-                                      </strong>
-                                      <div className="student-email-sub">{sub.submitter?.email}</div>
-                                    </td>
-                                    <td>{new Date(sub.submittedAt).toLocaleDateString()}</td>
-                                    <td>{getVerdictTag(sub.status)}</td>
-                                    <td>
-                                      {sub.fileUrl ? (
-                                        <a
-                                          href={getFileUrl(sub.fileUrl)}
-                                          download={sub.fileName || 'submission.bin'}
-                                          className="btn-link-sm"
-                                        >
-                                          <Download size={13} />
-                                          <span>{sub.fileName}</span>
-                                        </a>
-                                      ) : (
-                                        <span className="text-muted">No file</span>
-                                      )}
-                                    </td>
-                                    <td>
-                                      <span className="notes-snippet" title={sub.notes}>
-                                        {sub.notes ? `${sub.notes.slice(0, 40)}...` : '—'}
-                                      </span>
-                                    </td>
-                                    <td>
-                                      <button
-                                        className="btn-secondary btn-xs"
-                                        onClick={() =>
-                                          setReviewingSubmission({
-                                            assignmentId: assignment.id,
-                                            submission: sub,
-                                          })
-                                        }
-                                      >
-                                        <MessageSquare size={13} />
-                                        <span>Review</span>
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
+          {/* Active / Pending Assignments (Shown directly in plain view) */}
+          {pendingAssignments.length === 0 ? (
+            <div className="empty-pending-assignments-card">
+              <CheckCircle2 size={32} color="#10b981" />
+              <div className="empty-pending-text">
+                <h4>All caught up!</h4>
+                <p>You have submitted all active assignments. Check your submission history below.</p>
               </div>
-            );
-          })}
+            </div>
+          ) : (
+            pendingAssignments.map(renderAssignmentCard)
+          )}
+
+          {/* Submitted Assignments (Grouped under collapsible dropdown to eliminate clutter) */}
+          {submittedAssignments.length > 0 && (
+            <div className="submitted-assignments-accordion">
+              <button
+                type="button"
+                className="submitted-dropdown-trigger"
+                onClick={() => setShowSubmittedDropdown((prev) => !prev)}
+                aria-expanded={showSubmittedDropdown}
+              >
+                <div className="submitted-dropdown-left">
+                  <div className="submitted-dropdown-icon">
+                    <CheckCircle2 size={18} />
+                  </div>
+                  <span className="submitted-dropdown-title">Submitted Assignments</span>
+                  <span className="submitted-badge-count">{submittedAssignments.length}</span>
+                </div>
+                <div className="submitted-dropdown-right">
+                  <span className="submitted-dropdown-hint">
+                    {showSubmittedDropdown ? 'Hide completed' : 'View history'}
+                  </span>
+                  {showSubmittedDropdown ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </div>
+              </button>
+
+              {showSubmittedDropdown && (
+                <div className="submitted-dropdown-content">
+                  {submittedAssignments.map(renderAssignmentCard)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -607,6 +723,19 @@ export const AssignmentsView: React.FC<AssignmentsViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Edit Assignment Modal */}
+      {editingAssignment && onUpdateAssignment && (
+        <EditAssignmentModal
+          isOpen={!!editingAssignment}
+          onClose={() => setEditingAssignment(null)}
+          assignment={editingAssignment}
+          onSubmit={async (assignmentId, data) => {
+            await onUpdateAssignment(assignmentId, data);
+          }}
+        />
+      )}
     </div>
   );
 };
+

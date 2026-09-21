@@ -171,6 +171,11 @@ class ApiClient {
         `/departments/${slug}/assignments/${assignmentId}/submissions/${submissionId}/review`,
         { method: 'POST', body: JSON.stringify(data) }
       ),
+    update: (slug: string, assignmentId: string, data: any) =>
+      this.request<any>(`/departments/${slug}/assignments/${assignmentId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
     delete: (slug: string, assignmentId: string) =>
       this.request<any>(`/departments/${slug}/assignments/${assignmentId}`, { method: 'DELETE' }),
   };

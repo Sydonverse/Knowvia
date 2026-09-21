@@ -28,6 +28,7 @@ class SocketService {
   private scheduleDeletedListeners: ((data: { id: string }) => void)[] = [];
   private assignmentListeners: ((assign: Assignment) => void)[] = [];
   private assignmentDeletedListeners: ((data: { id: string }) => void)[] = [];
+  private assignmentUpdatedListeners: ((assign: Assignment) => void)[] = [];
   private materialListeners: ((mat: Material) => void)[] = [];
   private materialDeletedListeners: ((data: { id: string }) => void)[] = [];
 
@@ -44,6 +45,7 @@ class SocketService {
     this.scheduleUpdatedListeners = [];
     this.scheduleDeletedListeners = [];
     this.assignmentListeners = [];
+    this.assignmentUpdatedListeners = [];
     this.assignmentDeletedListeners = [];
     this.materialListeners = [];
     this.materialDeletedListeners = [];
@@ -120,6 +122,10 @@ class SocketService {
 
     this.socket.on('assignment:new', (assign: Assignment) => {
       this.assignmentListeners.forEach((fn) => fn(assign));
+    });
+
+    this.socket.on('assignment:updated', (assign: Assignment) => {
+      this.assignmentUpdatedListeners.forEach((fn) => fn(assign));
     });
 
     this.socket.on('assignment:deleted', (data: { id: string }) => {
@@ -253,6 +259,13 @@ class SocketService {
     this.assignmentDeletedListeners.push(callback);
     return () => {
       this.assignmentDeletedListeners = this.assignmentDeletedListeners.filter((fn) => fn !== callback);
+    };
+  }
+
+  public onAssignmentUpdated(callback: (assign: Assignment) => void) {
+    this.assignmentUpdatedListeners.push(callback);
+    return () => {
+      this.assignmentUpdatedListeners = this.assignmentUpdatedListeners.filter((fn) => fn !== callback);
     };
   }
 
