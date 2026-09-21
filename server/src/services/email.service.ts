@@ -69,6 +69,62 @@ export interface DispatchEmailPayload {
   htmlContent: string;
 }
 
+let cachedBrevoSender: { name: string; email: string } | null = null;
+
+/**
+ * Resolves the authenticated sender email for Brevo:
+ * 1. Uses BREVO_SENDER_EMAIL if configured in environment variables.
+ * 2. Auto-discovers the verified sender from Brevo GET /v3/senders.
+ * 3. Falls back to SMTP_USER or default email.
+ */
+export const getBrevoSender = async (
+  apiKey: string,
+  fallbackEmail: string,
+  fallbackName: string
+): Promise<{ name: string; email: string }> => {
+  if (process.env.BREVO_SENDER_EMAIL) {
+    return {
+      name: process.env.BREVO_SENDER_NAME || fallbackName,
+      email: process.env.BREVO_SENDER_EMAIL,
+    };
+  }
+
+  if (cachedBrevoSender) {
+    return cachedBrevoSender;
+  }
+
+  try {
+    const res = await fetch('https://api.brevo.com/v3/senders', {
+      method: 'GET',
+      headers: {
+        'api-key': apiKey,
+        'Accept': 'application/json',
+      },
+      signal: AbortSignal.timeout(6000),
+    });
+
+    if (res.ok) {
+      const data: any = await res.json();
+      const activeSender = data.senders?.find((s: any) => s.active !== false);
+      if (activeSender && activeSender.email) {
+        cachedBrevoSender = {
+          name: fallbackName,
+          email: activeSender.email,
+        };
+        console.log(`[Brevo] Auto-discovered verified sender: ${activeSender.email}`);
+        return cachedBrevoSender;
+      }
+    } else {
+      const errText = await res.text();
+      console.warn(`[Brevo] Senders check returned ${res.status}: ${errText}`);
+    }
+  } catch (err: any) {
+    console.warn('[Brevo] Senders query error:', err.message);
+  }
+
+  return { name: fallbackName, email: fallbackEmail };
+};
+
 /**
  * Dispatches an email using the optimal available transport:
  * 1. Brevo REST API (HTTPS port 443 - works on Render free tier)
@@ -85,6 +141,8 @@ export const dispatchEmail = async (
 
   // 1. Check Brevo REST API (HTTPS Port 443)
   if (brevoApiKey) {
+    const sender = await getBrevoSender(brevoApiKey, senderEmail, senderName);
+
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
@@ -93,7 +151,7 @@ export const dispatchEmail = async (
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        sender: { name: senderName, email: senderEmail },
+        sender: { name: sender.name, email: sender.email },
         to: [{ email: payload.to, name: payload.recipientName }],
         subject: payload.subject,
         htmlContent: payload.htmlContent,
@@ -104,6 +162,7 @@ export const dispatchEmail = async (
 
     if (!res.ok) {
       const errorText = await res.text();
+      console.error(`[Brevo] Email dispatch rejected (${res.status}):`, errorText);
       throw new Error(`Brevo API error (${res.status}): ${errorText}`);
     }
     const data: any = await res.json();
