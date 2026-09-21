@@ -139,11 +139,31 @@ describe('Knowvia Assignment Editing API (Tutor & Admin)', () => {
   });
 
   afterAll(async () => {
-    // Cleanup created test assignment
-    if (testAssignmentId) {
-      await prisma.assignment.deleteMany({ where: { id: testAssignmentId } });
+    // Thoroughly clean up created test entities
+    try {
+      if (testAssignmentId) {
+        await prisma.assignment.deleteMany({ where: { id: testAssignmentId } });
+      }
+      if (testDeptId) {
+        await prisma.assignment.deleteMany({ where: { departmentId: testDeptId } });
+        await prisma.departmentMember.deleteMany({ where: { departmentId: testDeptId } });
+        await prisma.department.deleteMany({ where: { id: testDeptId } });
+      }
+      await prisma.user.deleteMany({
+        where: {
+          email: {
+            in: [
+              'test-assign-tutor@knowvia.internal',
+              'test-assign-intern@knowvia.internal',
+            ],
+          },
+        },
+      });
+    } catch (e) {
+      console.warn('Assignment test cleanup error:', e);
+    } finally {
+      await prisma.$disconnect();
     }
-    await prisma.$disconnect();
   });
 
   describe('Authorization & Security', () => {
