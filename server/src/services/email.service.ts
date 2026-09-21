@@ -105,13 +105,17 @@ export const getBrevoSender = async (
 
     if (res.ok) {
       const data: any = await res.json();
-      const activeSender = data.senders?.find((s: any) => s.active !== false);
+      // Prefer fallbackEmail (e.g. knowvia.testing@gmail.com) if present in verified senders, otherwise use first active verified sender
+      const preferred = data.senders?.find(
+        (s: any) => s.active !== false && s.email.toLowerCase() === fallbackEmail.toLowerCase()
+      );
+      const activeSender = preferred || data.senders?.find((s: any) => s.active !== false);
       if (activeSender && activeSender.email) {
         cachedBrevoSender = {
           name: fallbackName,
           email: activeSender.email,
         };
-        console.log(`[Brevo] Auto-discovered verified sender: ${activeSender.email}`);
+        console.log(`[Brevo] Using verified sender: ${activeSender.email}`);
         return cachedBrevoSender;
       }
     } else {
