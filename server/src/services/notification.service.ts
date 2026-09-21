@@ -62,7 +62,11 @@ export const dispatchWebPushToUser = async (userId: string, payload: Notificatio
               auth: sub.auth,
             },
           },
-          pushPayload
+          pushPayload,
+          {
+            urgency: 'high',
+            TTL: 60 * 60 * 24,
+          }
         );
         console.log(`[WebPush] Delivered successfully to sub ${sub.id} (Status ${sendResult.statusCode})`);
       } catch (err: any) {

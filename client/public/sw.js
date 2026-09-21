@@ -1,5 +1,5 @@
 // Knowvia PWA Service Worker
-const CACHE_NAME = 'knowvia-cache-v5';
+const CACHE_NAME = 'knowvia-cache-v6';
 
 const STATIC_ASSETS = [
   '/',
@@ -143,7 +143,7 @@ self.addEventListener('push', (event) => {
       url: data.actionUrl,
       type: data.type,
     },
-    tag: `knowvia-${data.type.toLowerCase()}`,
+    tag: `knowvia-${data.type.toLowerCase()}-${Date.now()}`,
     renotify: true,
   };
 
