@@ -5,9 +5,9 @@ import { getIO } from '../socket';
 // Initialize Web Push VAPID keys if provided
 const vapidPublicKey =
   process.env.VAPID_PUBLIC_KEY ||
-  'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjDCWJxoBURZqvDxHLtlKTvnGDzk8';
+  'BLr7QZWHW7ZZ7XK4d5qLHav0nhMdst1UixvyXPQsjHU1FSfElFSJevXMGc2YjVsaLN-00_Qijm9S8VBBKJRBl6k';
 const vapidPrivateKey =
-  process.env.VAPID_PRIVATE_KEY || 'EEe0_WvU_9tZfK2g8xXf0pU8dG_Zk181_6s7W5zE_9w';
+  process.env.VAPID_PRIVATE_KEY || 'ne-oSNYaHOwY17FcUTyPaVCTdtcA5nq5znWMscoI7J0';
 const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@knowvia.internal';
 
 try {
@@ -33,7 +33,10 @@ export const dispatchWebPushToUser = async (userId: string, payload: Notificatio
       where: { userId },
     });
 
-    if (subscriptions.length === 0) return;
+    if (subscriptions.length === 0) {
+      console.log(`[WebPush] User ${userId} has no registered push subscriptions. Push skipped.`);
+      return;
+    }
 
     const pushPayload = JSON.stringify({
       title: payload.title,
@@ -51,7 +54,7 @@ export const dispatchWebPushToUser = async (userId: string, payload: Notificatio
 
     for (const sub of subscriptions) {
       try {
-        await webpush.sendNotification(
+        const sendResult = await webpush.sendNotification(
           {
             endpoint: sub.endpoint,
             keys: {
@@ -61,11 +64,19 @@ export const dispatchWebPushToUser = async (userId: string, payload: Notificatio
           },
           pushPayload
         );
+        console.log(`[WebPush] Delivered successfully to sub ${sub.id} (Status ${sendResult.statusCode})`);
       } catch (err: any) {
+        console.warn(`[WebPush] Push delivery failed for sub ${sub.id}:`, {
+          statusCode: err.statusCode,
+          message: err.message,
+          body: err.body,
+        });
+
         // If subscription is 410 Gone or 404 Not Found, delete it
         if (err.statusCode === 410 || err.statusCode === 404) {
           try {
             await prisma.pushSubscription.delete({ where: { id: sub.id } });
+            console.log(`[WebPush] Cleaned up expired/unregistered subscription ${sub.id}`);
           } catch (_) {}
         }
       }

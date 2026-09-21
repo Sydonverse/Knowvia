@@ -74,7 +74,7 @@ export const markAllRead = async (req: AuthRequest, res: Response): Promise<void
 export const getVapidPublicKey = async (_req: AuthRequest, res: Response): Promise<void> => {
   const publicKey =
     process.env.VAPID_PUBLIC_KEY ||
-    'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjDCWJxoBURZqvDxHLtlKTvnGDzk8';
+    'BLr7QZWHW7ZZ7XK4d5qLHav0nhMdst1UixvyXPQsjHU1FSfElFSJevXMGc2YjVsaLN-00_Qijm9S8VBBKJRBl6k';
   res.json({ publicKey });
 };
 
@@ -161,9 +161,14 @@ export const sendTestPushNotification = async (req: AuthRequest, res: Response):
       return;
     }
 
-    // Allow in non-production environments for any authenticated user, or in production for ADMINs
-    if (process.env.NODE_ENV === 'production' && user.role !== 'ADMIN') {
-      res.status(403).json({ error: 'Test push notifications are restricted to administrators in production' });
+    const subCount = await prisma.pushSubscription.count({
+      where: { userId: user.id },
+    });
+
+    if (subCount === 0) {
+      res.status(400).json({
+        error: 'No active push subscriptions registered for your account. Please enable push notifications on this device first.',
+      });
       return;
     }
 

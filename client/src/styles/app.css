@@ -2381,6 +2381,49 @@
   line-height: 1.4;
 }
 
+.push-prompt-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(99, 102, 241, 0.04));
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+
+.push-prompt-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.push-prompt-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.push-prompt-banner-content strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.push-prompt-banner-content p {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.push-prompt-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .drawer-body {
   flex: 1;
   overflow-y: auto;

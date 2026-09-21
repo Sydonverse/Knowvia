@@ -17,7 +17,7 @@ import {
 } from './types';
 import { api } from './services/api';
 import { socketService } from './services/socket';
-import { urlBase64ToUint8Array } from './utils/push.utils';
+import { isPushSupported, subscribeUserToPush } from './utils/push.utils';
 
 import { Navbar } from './components/Navbar';
 import { Sidebar, ActiveTab } from './components/Sidebar';
@@ -46,12 +46,27 @@ export const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
+  // Helper to map pathname to active tab
+  const getTabFromPath = (path: string): ActiveTab => {
+    if (path.startsWith('/announcements')) return 'announcements';
+    if (path.startsWith('/schedule')) return 'schedule';
+    if (path.startsWith('/assignments')) return 'assignments';
+    if (path.startsWith('/materials')) return 'materials';
+    if (path.startsWith('/chat')) return 'chat';
+    return 'dashboard';
+  };
+
   // URL Path Routing State
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   useEffect(() => {
     const handleLocationChange = () => {
-      setCurrentPath(window.location.pathname);
+      const newPath = window.location.pathname;
+      setCurrentPath(newPath);
+      const matchedTab = getTabFromPath(newPath);
+      if (newPath !== '/' && !newPath.startsWith('/onboarding') && !newPath.startsWith('/reset-password')) {
+        setActiveTab(matchedTab);
+      }
     };
     window.addEventListener('popstate', handleLocationChange);
     return () => window.removeEventListener('popstate', handleLocationChange);
@@ -63,7 +78,7 @@ export const App: React.FC = () => {
   const [activeDept, setActiveDept] = useState<DepartmentMemberContext | null>(null);
 
   // Navigation & Deep-Link State
-  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<ActiveTab>(() => getTabFromPath(window.location.pathname));
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
 
   // Department Scoped Data
@@ -79,6 +94,10 @@ export const App: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [showPushPromptBanner, setShowPushPromptBanner] = useState<boolean>(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return false;
+    return Notification.permission === 'default';
+  });
 
   // Real-time typing
   const [typingUsers, setTypingUsers] = useState<{ userId: string; name: string }[]>([]);
@@ -95,12 +114,28 @@ export const App: React.FC = () => {
 
   // Push Subscription Synchronization (stable callback)
   const syncPushSubscription = useCallback(async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!isPushSupported()) return;
     try {
       const reg = await navigator.serviceWorker.ready;
+      const perm = Notification.permission;
+
+      // 1. Auto-subscribe if notification permission is already granted and user is authenticated
+      if (perm === 'granted' && api.getToken()) {
+        try {
+          await subscribeUserToPush(reg, api);
+          setPushEnabled(true);
+          setShowPushPromptBanner(false);
+          return;
+        } catch (subErr) {
+          console.warn('[WebPush] Auto-subscribe error:', subErr);
+        }
+      }
+
+      // 2. Otherwise inspect existing subscription
       const existingSub = await reg.pushManager.getSubscription();
       if (existingSub) {
         setPushEnabled(true);
+        setShowPushPromptBanner(false);
         if (api.getToken()) {
           const subData = JSON.parse(JSON.stringify(existingSub));
           await api.notifications
@@ -530,7 +565,7 @@ export const App: React.FC = () => {
   };
 
   const handleEnablePush = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    if (!isPushSupported()) {
       alert('Push notifications are not supported in this browser.');
       return;
     }
@@ -538,27 +573,16 @@ export const App: React.FC = () => {
     try {
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') {
+        setShowPushPromptBanner(false);
         alert('Notification permission was not granted. Please allow notifications in your browser settings.');
         return;
       }
 
-      const { publicKey } = await api.notifications.getVapidKey();
       const registration = await navigator.serviceWorker.ready;
-      const convertedKey = urlBase64ToUint8Array(publicKey);
-
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: convertedKey,
-      });
-
-      const subData = JSON.parse(JSON.stringify(subscription));
-      await api.notifications.subscribePush({
-        endpoint: subData.endpoint,
-        keys: subData.keys,
-        userAgent: navigator.userAgent,
-      });
+      await subscribeUserToPush(registration, api);
 
       setPushEnabled(true);
+      setShowPushPromptBanner(false);
       alert('✅ Push notifications enabled! You will receive instant class reminders and announcements.');
     } catch (err: any) {
       console.error('Push enable error:', err);
@@ -587,6 +611,7 @@ export const App: React.FC = () => {
     try {
       const res = await api.notifications.sendTestPush();
       console.log('Test push dispatched:', res);
+      alert('🔔 Test push notification dispatched! Check your device notification center.');
     } catch (err: any) {
       alert(err.message || 'Failed to dispatch test push notification');
     }
@@ -724,6 +749,32 @@ export const App: React.FC = () => {
 
         {/* Main Workspace Body */}
         <main className="main-content-viewport">
+          {/* Push Prompt Banner for users with unprompted notifications */}
+          {user && showPushPromptBanner && !pushEnabled && isPushSupported() && (
+            <div className="push-prompt-banner">
+              <div className="push-prompt-banner-content">
+                <span className="push-prompt-icon">🔔</span>
+                <div>
+                  <strong>Enable Mobile & Desktop Push Notifications</strong>
+                  <p>Receive instant class reminders, announcements, and assignment updates even when Knowvia is closed.</p>
+                </div>
+              </div>
+              <div className="push-prompt-actions">
+                <button className="btn-primary btn-sm" onClick={handleEnablePush}>
+                  Enable Alerts
+                </button>
+                <button
+                  className="btn-icon btn-sm"
+                  onClick={() => setShowPushPromptBanner(false)}
+                  title="Dismiss"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '14px', padding: '4px 8px' }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'users' && user.role === 'ADMIN' ? (
             <AdminUsersView availableDepartments={availableDepartments} currentUserId={user.id} />
           ) : !activeDept && user.role === 'ADMIN' && activeTab === 'dashboard' ? (

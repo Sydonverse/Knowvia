@@ -20,6 +20,7 @@ jest.mock('../config/prisma', () => ({
       updateMany: jest.fn(),
       findMany: jest.fn(),
       delete: jest.fn(),
+      count: jest.fn(),
     },
     notification: {
       create: jest.fn(),
@@ -175,10 +176,8 @@ describe('Knowvia Web Push & PWA Notification System', () => {
   });
 
   describe('5. Safe Test Push Notification Mechanism', () => {
-    it('allows test notification in non-production environments for standard users', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
-
+    it('dispatches test notification for any authenticated user with active subscription', async () => {
+      (prisma.pushSubscription.count as jest.Mock).mockResolvedValue(1);
       (prisma.pushSubscription.findMany as jest.Mock).mockResolvedValue([
         {
           id: 'sub-1',
@@ -195,23 +194,17 @@ describe('Knowvia Web Push & PWA Notification System', () => {
       expect(mockRes.json).toHaveBeenCalledWith(
         expect.objectContaining({ message: expect.stringMatching(/dispatched/i) })
       );
-
-      process.env.NODE_ENV = originalEnv;
     });
 
-    it('rejects test notification in production if caller is not an ADMIN', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
-      mockReq.user.role = 'INTERN';
+    it('returns 400 if caller has no active push subscription registered', async () => {
+      (prisma.pushSubscription.count as jest.Mock).mockResolvedValue(0);
 
       await sendTestPushNotification(mockReq as any, mockRes as any);
 
-      expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({ error: expect.stringMatching(/restricted to administrators/i) })
+        expect.objectContaining({ error: expect.stringMatching(/no active push/i) })
       );
-
-      process.env.NODE_ENV = originalEnv;
     });
   });
 
