@@ -3372,14 +3372,91 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .navbar-container {
-    padding: 0 16px;
+    padding: 0 14px;
+    height: 60px;
+  }
+
+  .navbar-left,
+  .navbar-right {
+    gap: 8px;
+  }
+
+  .brand-logo-group {
+    gap: 8px;
+  }
+
+  .logo-badge {
+    width: 34px;
+    height: 34px;
+  }
+
+  .brand-title {
+    font-size: 17px;
   }
 
   .brand-subtitle,
   .btn-demo-pill span {
     display: none;
+  }
+
+  /* Non-admin department pill is already prominently shown in the Department Workspace card below */
+  .non-admin-dept-pill {
+    display: none;
+  }
+
+  /* Admin department switcher becomes compact on mobile */
+  .admin-dept-switcher .dept-pill-btn {
+    padding: 4px 8px;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .admin-dept-switcher .dept-name-text {
+    max-width: 80px;
+  }
+
+  /* PWA install button collapses to compact icon on mobile */
+  .pwa-install-btn {
+    padding: 8px 10px;
+  }
+
+  .pwa-install-btn span {
+    display: none;
+  }
+
+  /* Compact touch avatar button for user profile & sign out */
+  .user-profile-pill {
+    padding: 2px;
+    gap: 0;
+    background: transparent;
+    border-color: transparent;
+    border-radius: var(--radius-full);
+  }
+
+  .user-profile-pill:hover,
+  .user-profile-pill:active {
+    background: var(--bg-subtle-hover);
+  }
+
+  .user-profile-meta,
+  .user-profile-chevron {
+    display: none;
+  }
+
+  .user-profile-pill .user-initials-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Ensure user dropdown stays fully on screen on mobile */
+  .dropdown-menu.user-dropdown {
+    min-width: 220px;
+    max-width: calc(100vw - 20px);
+    right: 0;
   }
 
   .hero-banner {
@@ -3412,6 +3489,20 @@
 
   .drawer-panel {
     max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-container {
+    padding: 0 10px;
+  }
+
+  .admin-dept-switcher .dept-name-text {
+    display: none;
+  }
+
+  .admin-dept-switcher .dept-pill-btn {
+    padding: 6px 8px;
   }
 }
 

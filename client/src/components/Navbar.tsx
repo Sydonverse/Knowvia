@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Bell,
   Download,
@@ -43,6 +43,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [showDeptMenu, setShowDeptMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const deptMenuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+      if (deptMenuRef.current && !deptMenuRef.current.contains(event.target as Node)) {
+        setShowDeptMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
 
   const getDeptIcon = (iconName: string) => {
     switch (iconName) {
@@ -84,7 +103,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Organization Overview / Department Switcher */}
         {user?.role === 'ADMIN' ? (
-          <div className="dept-switcher-dropdown">
+          <div className="dept-switcher-dropdown admin-dept-switcher" ref={deptMenuRef}>
             <button
               className="dept-pill-btn"
               onClick={() => setShowDeptMenu(!showDeptMenu)}
@@ -98,6 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? `Department: ${activeDept.name} – Click to switch or return to Organization Overview`
                   : 'Organization Overview – Click to select a department workspace'
               }
+              aria-label="Switch department workspace"
             >
               {activeDept ? (
                 <span style={{ color: activeDept.colorHex }}>{getDeptIcon(activeDept.icon)}</span>
@@ -150,7 +170,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         ) : (
           activeDept && (
-            <div className="dept-switcher-dropdown">
+            <div className="dept-switcher-dropdown non-admin-dept-pill">
               <button
                 className="dept-pill-btn"
                 style={{
@@ -171,7 +191,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="navbar-right">
         {/* PWA Install Button */}
         {canInstallPwa && (
-          <button className="btn-secondary btn-sm pwa-install-btn" onClick={onInstallPwa}>
+          <button className="btn-secondary btn-sm pwa-install-btn" onClick={onInstallPwa} title="Install App">
             <Download size={15} />
             <span>Install App</span>
           </button>
@@ -193,10 +213,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         {/* User Profile Card & Sign Out */}
-        <div className="relative-container">
+        <div className="relative-container" ref={userMenuRef}>
           <button
             className="user-profile-pill"
             onClick={() => setShowUserMenu(!showUserMenu)}
+            aria-label="User profile and account settings"
+            title={user ? `${formatDisplayName(user.firstName, user.lastName)} (${user.role})` : 'User profile'}
           >
             <UserAvatar firstName={user?.firstName} lastName={user?.lastName} role={user?.role} size="sm" />
             <div className="user-profile-meta">
@@ -207,7 +229,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {user?.role}
               </span>
             </div>
-            <ChevronDown size={14} className="text-muted" />
+            <ChevronDown size={14} className="text-muted user-profile-chevron" />
           </button>
 
           {showUserMenu && (
