@@ -19,7 +19,7 @@ class ApiClient {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
-    timeoutMs: number = 15000
+    timeoutMs: number = 20000
   ): Promise<T> {
     const token = this.getToken();
     const headers: Record<string, string> = {
@@ -30,12 +30,17 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    if (!(options.body instanceof FormData)) {
+    const isFormData = options.body instanceof FormData;
+
+    if (!isFormData) {
       headers['Content-Type'] = 'application/json';
     }
 
+    // Allocate 120 seconds for file uploads to accommodate large files (up to 25MB) and cold starts
+    const effectiveTimeoutMs = isFormData ? Math.max(timeoutMs, 120000) : timeoutMs;
+
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timeoutId = setTimeout(() => controller.abort(), effectiveTimeoutMs);
 
     let response: Response;
     try {
@@ -46,7 +51,11 @@ class ApiClient {
       });
     } catch (err: any) {
       if (err.name === 'AbortError') {
-        throw new Error('Network request timed out. Please check your connection or server status.');
+        throw new Error(
+          isFormData
+            ? 'File upload timed out. Please check your internet connection or server status.'
+            : 'Network request timed out. Please check your connection or server status.'
+        );
       }
       throw err;
     } finally {
@@ -124,7 +133,7 @@ class ApiClient {
     list: (slug: string) =>
       this.request<{ materials: any[] }>(`/departments/${slug}/materials`),
     upload: (slug: string, formData: FormData) =>
-      this.request<any>(`/departments/${slug}/materials`, { method: 'POST', body: formData }),
+      this.request<any>(`/departments/${slug}/materials`, { method: 'POST', body: formData }, 120000),
     delete: (slug: string, id: string) =>
       this.request<any>(`/departments/${slug}/materials/${id}`, { method: 'DELETE' }),
   };
@@ -162,10 +171,14 @@ class ApiClient {
     create: (slug: string, data: any) =>
       this.request<any>(`/departments/${slug}/assignments`, { method: 'POST', body: JSON.stringify(data) }),
     submit: (slug: string, assignmentId: string, formData: FormData) =>
-      this.request<any>(`/departments/${slug}/assignments/${assignmentId}/submit`, {
-        method: 'POST',
-        body: formData,
-      }),
+      this.request<any>(
+        `/departments/${slug}/assignments/${assignmentId}/submit`,
+        {
+          method: 'POST',
+          body: formData,
+        },
+        120000
+      ),
     review: (slug: string, assignmentId: string, submissionId: string, data: any) =>
       this.request<any>(
         `/departments/${slug}/assignments/${assignmentId}/submissions/${submissionId}/review`,

@@ -26,6 +26,7 @@ import {
 } from '../types';
 import { getFileUrl } from '../utils/file';
 import { EditAssignmentModal } from './Modals';
+import { validateFileBeforeUpload } from '../utils/fileValidator';
 
 interface AssignmentsViewProps {
   assignments: Assignment[];
@@ -104,11 +105,35 @@ export const AssignmentsView: React.FC<AssignmentsViewProps> = ({
     }
   }, [selectedAssignmentId, assignments, isTutorOrAdmin, currentUser?.id]);
 
+  // Handle submission file change with instant security check
+  const handleSubmissionFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0] || null;
+    if (selected) {
+      const validation = validateFileBeforeUpload(selected);
+      if (!validation.isValid) {
+        setSubmitError(validation.error || 'Invalid file selected');
+        setSubmitFile(null);
+        e.target.value = '';
+        return;
+      }
+    }
+    setSubmitError('');
+    setSubmitFile(selected);
+  };
+
   // Handle student submit
   const handleSubmitWork = async (assignmentId: string) => {
     if (!submitFile && !submitNotes.trim()) {
       setSubmitError('Please provide a submission file or summary notes.');
       return;
+    }
+
+    if (submitFile) {
+      const validation = validateFileBeforeUpload(submitFile);
+      if (!validation.isValid) {
+        setSubmitError(validation.error || 'Invalid file');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -365,7 +390,7 @@ export const AssignmentsView: React.FC<AssignmentsViewProps> = ({
                       <label className="field-label">Deliverable File (25MB max)</label>
                       <input
                         type="file"
-                        onChange={(e) => setSubmitFile(e.target.files?.[0] || null)}
+                        onChange={handleSubmissionFileChange}
                         className="file-input-clean"
                       />
                     </div>

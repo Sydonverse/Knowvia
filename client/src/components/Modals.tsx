@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { DepartmentMemberContext, Assignment } from '../types';
+import { validateFileBeforeUpload } from '../utils/fileValidator';
 
 // ─── 1. UPLOAD LEARNING MATERIAL MODAL ─────────────────────────
 interface UploadMaterialModalProps {
@@ -35,6 +36,21 @@ export const UploadMaterialModal: React.FC<UploadMaterialModalProps> = ({
 
   if (!isOpen) return null;
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0] || null;
+    if (selected) {
+      const validation = validateFileBeforeUpload(selected);
+      if (!validation.isValid) {
+        setError(validation.error || 'Invalid file selected');
+        setFile(null);
+        e.target.value = '';
+        return;
+      }
+    }
+    setError('');
+    setFile(selected);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !file) {
@@ -42,8 +58,9 @@ export const UploadMaterialModal: React.FC<UploadMaterialModalProps> = ({
       return;
     }
 
-    if (file.size > 25 * 1024 * 1024) {
-      setError('File exceeds the 25MB storage efficiency limit.');
+    const validation = validateFileBeforeUpload(file);
+    if (!validation.isValid) {
+      setError(validation.error || 'File validation failed');
       return;
     }
 
@@ -120,7 +137,7 @@ export const UploadMaterialModal: React.FC<UploadMaterialModalProps> = ({
               <label className="field-label">Select File (Max 25MB) *</label>
               <input
                 type="file"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                onChange={handleFileChange}
                 required
                 className="file-input-clean"
               />
