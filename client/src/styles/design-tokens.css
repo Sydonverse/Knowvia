@@ -120,3 +120,75 @@ html, body {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
+/* ─── DARK THEME TOKENS ─────────────────────────────────── */
+[data-theme="dark"] {
+  /* Rich, Curated Dark Base Palette */
+  --bg-page: #0b0f19;
+  --bg-surface: #111827;
+  --bg-card: #111827;
+  --bg-card-hover: #172033;
+  --bg-sidebar: #0e1422;
+  --bg-subtle: #1e293b;
+  --bg-subtle-hover: #293548;
+  --bg-input: #151d2f;
+  --bg-input-focus: #1b2438;
+
+  /* Borders & Dividers */
+  --border-subtle: #1e293b;
+  --border-medium: #334155;
+  --border-strong: #475569;
+  --border-active: #818cf8;
+
+  /* Typography */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+  --text-inverse: #0f172a;
+
+  /* Primary Brand & Accent Colors */
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --primary-light: rgba(99, 102, 241, 0.18);
+  --primary-subtle: rgba(99, 102, 241, 0.28);
+  --primary-glow: rgba(99, 102, 241, 0.25);
+
+  /* Semantic State Accents */
+  --success: #34d399;
+  --success-light: rgba(16, 185, 129, 0.16);
+  --success-border: rgba(16, 185, 129, 0.32);
+  --warning: #fbbf24;
+  --warning-light: rgba(245, 158, 11, 0.16);
+  --warning-border: rgba(245, 158, 11, 0.32);
+  --danger: #f87171;
+  --danger-light: rgba(239, 68, 68, 0.16);
+  --danger-border: rgba(239, 68, 68, 0.32);
+  --info: #38bdf8;
+  --info-light: rgba(14, 165, 233, 0.16);
+  --info-border: rgba(14, 165, 233, 0.32);
+
+  /* Department Overrides in Dark Mode */
+  --dept-light: rgba(99, 102, 241, 0.18);
+  --dept-border: rgba(99, 102, 241, 0.35);
+
+  /* Subtle, Soft Shadows in Dark Mode */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.55), 0 2px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.65), 0 4px 10px -2px rgba(0, 0, 0, 0.45);
+  --shadow-floating: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
+}
+
+/* Dark Mode Scrollbars */
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}

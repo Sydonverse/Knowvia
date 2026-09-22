@@ -59,6 +59,26 @@ export const App: React.FC = () => {
   // URL Path Routing State
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
+  // Theme State (Light mode by default, persisted via localStorage)
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('knowvia_theme');
+    if (saved === 'dark' || saved === 'light') return saved;
+    return 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('knowvia_theme', theme);
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+      metaTheme.setAttribute('content', theme === 'dark' ? '#0b0f19' : '#4f46e5');
+    }
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   useEffect(() => {
     const handleLocationChange = () => {
       const newPath = window.location.pathname;
@@ -776,6 +796,8 @@ export const App: React.FC = () => {
         onLogout={handleLogout}
         canInstallPwa={canInstallPwa}
         onInstallPwa={handleInstallPwa}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       <div className="app-main-layout">

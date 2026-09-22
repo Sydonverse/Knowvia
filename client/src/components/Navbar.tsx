@@ -12,6 +12,8 @@ import {
   User as _UserIcon,
   BookOpen,
   Building,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { User, DepartmentMemberContext, AppNotification } from '../types';
 import { UserAvatar } from './UserAvatar';
@@ -28,6 +30,8 @@ interface NavbarProps {
   onLogout: () => void;
   canInstallPwa: boolean;
   onInstallPwa: () => void;
+  theme: 'light' | 'dark';
+  onToggleTheme: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -40,6 +44,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   canInstallPwa,
   onInstallPwa,
+  theme,
+  onToggleTheme,
 }) => {
   const [showDeptMenu, setShowDeptMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -241,6 +247,32 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="dropdown-user-email">{user?.email}</div>
                 <div className="dropdown-user-role">Role: {user?.role}</div>
               </div>
+              <div className="dropdown-divider"></div>
+
+              {/* Theme / Appearance Toggle */}
+              <div className="theme-toggle-row">
+                <div className="theme-toggle-label">
+                  {theme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
+                  <span>Appearance</span>
+                </div>
+                <button
+                  type="button"
+                  className="theme-switch-btn"
+                  onClick={onToggleTheme}
+                  title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+                  aria-label={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+                >
+                  <span className={`theme-pill-option ${theme === 'light' ? 'active' : ''}`}>
+                    <Sun size={12} />
+                    <span>Light</span>
+                  </span>
+                  <span className={`theme-pill-option ${theme === 'dark' ? 'active' : ''}`}>
+                    <Moon size={12} />
+                    <span>Dark</span>
+                  </span>
+                </button>
+              </div>
+
               <div className="dropdown-divider"></div>
               <button
                 className="dropdown-item text-danger"
