@@ -579,6 +579,33 @@ export const App: React.FC = () => {
     setUnreadCount(0);
   };
 
+  const handleDeleteNotification = async (id: string) => {
+    const target = notifications.find((n) => n.id === id);
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    if (target && !target.isRead) {
+      setUnreadCount((c) => Math.max(0, c - 1));
+    }
+    try {
+      await api.notifications.delete(id);
+    } catch (err) {
+      console.error('Failed to delete notification:', err);
+      fetchNotifications();
+    }
+  };
+
+  const handleClearAllNotifications = async () => {
+    if (notifications.length === 0) return;
+    if (!confirm('Are you sure you want to clear all announcements and alerts from this tray?')) return;
+    setNotifications([]);
+    setUnreadCount(0);
+    try {
+      await api.notifications.clearAll();
+    } catch (err) {
+      console.error('Failed to clear notifications:', err);
+      fetchNotifications();
+    }
+  };
+
   const handleEnablePush = async () => {
     if (!isPushSupported()) {
       alert('Push notifications are not supported in this browser.');
@@ -906,6 +933,8 @@ export const App: React.FC = () => {
         unreadCount={unreadCount}
         onMarkRead={handleMarkNotificationRead}
         onMarkAllRead={handleMarkAllNotificationsRead}
+        onDeleteNotification={handleDeleteNotification}
+        onClearAllNotifications={handleClearAllNotifications}
         onEnablePush={handleEnablePush}
         onDisablePush={handleDisablePush}
         onSendTestPush={handleSendTestPush}

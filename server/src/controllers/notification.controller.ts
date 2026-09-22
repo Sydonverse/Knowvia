@@ -71,6 +71,50 @@ export const markAllRead = async (req: AuthRequest, res: Response): Promise<void
   }
 };
 
+export const deleteNotification = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const deleted = await prisma.notification.deleteMany({
+      where: { id, recipientId: user.id },
+    });
+
+    if (deleted.count === 0) {
+      res.status(404).json({ error: 'Notification not found' });
+      return;
+    }
+
+    res.json({ message: 'Notification deleted successfully' });
+  } catch (error) {
+    console.error('Delete notification error:', error);
+    res.status(500).json({ error: 'Failed to delete notification' });
+  }
+};
+
+export const clearAllNotifications = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    await prisma.notification.deleteMany({
+      where: { recipientId: user.id },
+    });
+
+    res.json({ message: 'All notifications cleared successfully' });
+  } catch (error) {
+    console.error('Clear all notifications error:', error);
+    res.status(500).json({ error: 'Failed to clear notifications' });
+  }
+};
+
 export const getVapidPublicKey = async (_req: AuthRequest, res: Response): Promise<void> => {
   const publicKey =
     process.env.VAPID_PUBLIC_KEY ||

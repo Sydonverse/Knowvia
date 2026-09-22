@@ -4,6 +4,8 @@ import {
   listNotifications,
   markRead,
   markAllRead,
+  deleteNotification,
+  clearAllNotifications,
   getVapidPublicKey,
   subscribePush,
   unsubscribePush,
@@ -14,6 +16,9 @@ import {
 const router = Router();
 
 router.get('/', authenticate, listNotifications);
+router.delete('/', authenticate, clearAllNotifications);
+router.delete('/clear-all', authenticate, clearAllNotifications);
+router.delete('/:id', authenticate, deleteNotification);
 router.patch('/:id/read', authenticate, markRead);
 router.post('/:id/read', authenticate, markRead);
 router.patch('/read-all', authenticate, markAllRead);

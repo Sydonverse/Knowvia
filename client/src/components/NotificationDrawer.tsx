@@ -11,6 +11,7 @@ import {
   BookOpen,
   Megaphone,
   CheckCircle2,
+  Trash2,
 } from 'lucide-react';
 import { AppNotification } from '../types';
 import { ActiveTab } from './Sidebar';
@@ -22,6 +23,8 @@ interface NotificationDrawerProps {
   unreadCount: number;
   onMarkRead: (id: string) => void;
   onMarkAllRead: () => void;
+  onDeleteNotification?: (id: string) => void;
+  onClearAllNotifications?: () => void;
   onEnablePush: () => void;
   onDisablePush?: () => void;
   onSendTestPush?: () => void;
@@ -36,6 +39,8 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
   unreadCount,
   onMarkRead,
   onMarkAllRead,
+  onDeleteNotification,
+  onClearAllNotifications,
   onEnablePush,
   onDisablePush,
   onSendTestPush,
@@ -99,7 +104,17 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                 <CheckCheck size={18} />
               </button>
             )}
-            <button className="btn-icon" onClick={onClose} title="Close">
+            {notifications.length > 0 && onClearAllNotifications && (
+              <button
+                className="btn-icon btn-icon-clear-all"
+                onClick={onClearAllNotifications}
+                title="Clear entire tray"
+                aria-label="Clear entire tray"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+            <button className="btn-icon" onClick={onClose} title="Close" aria-label="Close drawer">
               <X size={18} />
             </button>
           </div>
@@ -157,33 +172,70 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
               </span>
             </div>
           ) : (
-            notifications.map((notif) => (
-              <div
-                key={notif.id}
-                className={`notif-item ${!notif.isRead ? 'unread' : ''}`}
-                onClick={() => handleNotificationClick(notif)}
-              >
-                <div className="notif-icon-col">{getTypeIcon(notif.type)}</div>
-                <div className="notif-content-col">
-                  <div className="notif-title-row">
-                    <span className="notif-title">{notif.title}</span>
-                    <span className="notif-time">
-                      {new Date(notif.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="notif-body-text">{notif.body}</p>
-                  {notif.actionUrl && (
-                    <div className="notif-click-hint">
-                      <span>Click to view details</span>
-                      <ArrowRight size={12} />
-                    </div>
-                  )}
-                </div>
+            <>
+              {/* Tray Summary and Clear Link */}
+              <div className="drawer-stream-header">
+                <span className="drawer-stream-count">
+                  {notifications.length} {notifications.length === 1 ? 'Notice' : 'Notices'}
+                </span>
+                {onClearAllNotifications && (
+                  <button
+                    type="button"
+                    className="btn-clear-tray-link"
+                    onClick={onClearAllNotifications}
+                    title="Clear all notices from this tray"
+                  >
+                    <Trash2 size={13} />
+                    <span>Clear Tray</span>
+                  </button>
+                )}
               </div>
-            ))
+
+              {notifications.map((notif) => (
+                <div
+                  key={notif.id}
+                  className={`notif-item ${!notif.isRead ? 'unread' : ''}`}
+                  onClick={() => handleNotificationClick(notif)}
+                >
+                  <div className="notif-icon-col">{getTypeIcon(notif.type)}</div>
+                  <div className="notif-content-col">
+                    <div className="notif-title-row">
+                      <span className="notif-title">{notif.title}</span>
+                      <div className="notif-meta-actions">
+                        <span className="notif-time">
+                          {new Date(notif.createdAt).toLocaleDateString()}
+                        </span>
+                        {onDeleteNotification && (
+                          <button
+                            type="button"
+                            className="btn-notif-delete"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteNotification(notif.id);
+                            }}
+                            title="Delete this announcement"
+                            aria-label="Delete this announcement"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <p className="notif-body-text">{notif.body}</p>
+                    {notif.actionUrl && (
+                      <div className="notif-click-hint">
+                        <span>Click to view details</span>
+                        <ArrowRight size={12} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </>
           )}
         </div>
       </div>
     </div>
   );
 };
+

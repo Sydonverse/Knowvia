@@ -192,6 +192,8 @@ class ApiClient {
     list: () => this.request<{ notifications: any[]; unreadCount: number }>('/notifications'),
     markRead: (id: string) => this.request<any>(`/notifications/${id}/read`, { method: 'PATCH' }),
     markAllRead: () => this.request<any>('/notifications/read-all', { method: 'PATCH' }),
+    delete: (id: string) => this.request<any>(`/notifications/${id}`, { method: 'DELETE' }),
+    clearAll: () => this.request<any>('/notifications', { method: 'DELETE' }),
     getVapidKey: () => this.request<{ publicKey: string }>('/notifications/vapid-key'),
     subscribePush: (data: { endpoint: string; keys: { p256dh: string; auth: string }; userAgent?: string }) =>
       this.request<any>('/notifications/subscribe', { method: 'POST', body: JSON.stringify(data) }),
