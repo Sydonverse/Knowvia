@@ -117,7 +117,7 @@ export const MaterialsView: React.FC<MaterialsViewProps> = ({
       ) : (
         <div className="materials-grid">
           {filteredMaterials.map((item) => (
-            <div key={item.id} className="material-card">
+            <div key={item.id} id={`material-${item.id}`} className="material-card">
               <div className="material-card-top">
                 <div className="material-file-icon-box">
                   {getFileIcon(item.fileMimeType, item.fileName)}

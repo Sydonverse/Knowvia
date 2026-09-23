@@ -5,7 +5,7 @@ import fs from 'fs';
 export const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 
 // Dangerous executable and script extensions that pose security risks
-const BLOCKED_EXTENSIONS = new Set([
+export const BLOCKED_EXTENSIONS = new Set([
   '.exe',
   '.bat',
   '.cmd',
@@ -29,6 +29,9 @@ const BLOCKED_EXTENSIONS = new Set([
   '.cgi',
   '.pl',
 ]);
+
+// Standard EICAR antivirus test signature string
+const EICAR_SIGNATURE = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -56,7 +59,52 @@ export const sanitizeFilename = (originalName: string): string => {
 };
 
 /**
- * Validates file safety based on size, extension, and magic bytes
+ * Native zero-dependency ZIP archive inspector.
+ * Parses ZIP Central Directory records (PK\x01\x02) to verify no dangerous executables or scripts are nested inside.
+ */
+export const scanZipForBlockedFiles = (
+  filePath: string | null,
+  fileBuffer: Buffer | null
+): { containsBlocked: boolean; blockedEntry?: string } => {
+  try {
+    let buf = fileBuffer;
+    if (!buf && filePath && fs.existsSync(filePath)) {
+      buf = fs.readFileSync(filePath);
+    }
+    if (!buf || buf.length < 4) return { containsBlocked: false };
+
+    // Verify ZIP magic bytes (PK\x03\x04 or PK\x05\x06)
+    if (buf[0] !== 0x50 || buf[1] !== 0x4b) {
+      return { containsBlocked: false };
+    }
+
+    let offset = 0;
+    while (offset <= buf.length - 46) {
+      const idx = buf.indexOf(Buffer.from([0x50, 0x4b, 0x01, 0x02]), offset);
+      if (idx === -1 || idx + 46 > buf.length) break;
+
+      const filenameLen = buf.readUInt16LE(idx + 28);
+      const extraLen = buf.readUInt16LE(idx + 30);
+      const commentLen = buf.readUInt16LE(idx + 32);
+
+      if (idx + 46 + filenameLen <= buf.length) {
+        const entryName = buf.toString('utf-8', idx + 46, idx + 46 + filenameLen);
+        const entryExt = path.extname(entryName).toLowerCase();
+        if (BLOCKED_EXTENSIONS.has(entryExt)) {
+          return { containsBlocked: true, blockedEntry: entryName };
+        }
+      }
+
+      offset = idx + 46 + filenameLen + extraLen + commentLen;
+    }
+  } catch {
+    // Non-fatal if parsing fails on non-standard archives
+  }
+  return { containsBlocked: false };
+};
+
+/**
+ * Validates file safety based on size, extension, magic bytes, double extensions, and malware heuristics
  */
 export const validateFileSafety = (
   fileBuffer: Buffer | null,
@@ -85,23 +133,39 @@ export const validateFileSafety = (
     };
   }
 
-  // 3. Inspect magic bytes for dangerous executable signatures disguised under another extension
-  let bufferToCheck: Buffer | null = fileBuffer;
-  if (!bufferToCheck && filePath && fs.existsSync(filePath)) {
+  // 3. Check for double extension evasion attacks (e.g. "report.exe.pdf" or "document.pdf.vbs")
+  const nameParts = originalFilename.split('.').filter(Boolean);
+  if (nameParts.length > 2) {
+    for (let i = 1; i < nameParts.length; i++) {
+      const subExt = '.' + nameParts[i].toLowerCase();
+      if (BLOCKED_EXTENSIONS.has(subExt)) {
+        return {
+          isValid: false,
+          error: `Security Alert: Dangerous double-extension pattern detected (${subExt}). Upload rejected.`,
+          sanitizedFilename: sanitized,
+        };
+      }
+    }
+  }
+
+  // 4. Inspect file content sample for magic bytes and heuristics
+  let sampleBuf: Buffer | null = fileBuffer;
+  if (!sampleBuf && filePath && fs.existsSync(filePath)) {
     try {
       const fd = fs.openSync(filePath, 'r');
-      const buf = Buffer.alloc(16);
-      fs.readSync(fd, buf, 0, 16, 0);
+      const readLen = Math.min(fileSizeBytes, 32768);
+      const buf = Buffer.alloc(readLen);
+      const bytesRead = fs.readSync(fd, buf, 0, readLen, 0);
       fs.closeSync(fd);
-      bufferToCheck = buf;
+      sampleBuf = buf.subarray(0, bytesRead);
     } catch {
       // Ignore read error if file can't be opened
     }
   }
 
-  if (bufferToCheck && bufferToCheck.length >= 4) {
+  if (sampleBuf && sampleBuf.length >= 4) {
     // Windows PE / DOS executable: "MZ" (0x4D 0x5A)
-    if (bufferToCheck[0] === 0x4d && bufferToCheck[1] === 0x5a) {
+    if (sampleBuf[0] === 0x4d && sampleBuf[1] === 0x5a) {
       return {
         isValid: false,
         error: 'Security Alert: File signature matches a Windows executable (MZ header). Upload rejected.',
@@ -111,10 +175,10 @@ export const validateFileSafety = (
 
     // Linux / Unix ELF binary: 0x7F 'E' 'L' 'F' (0x7F 0x45 0x4C 0x46)
     if (
-      bufferToCheck[0] === 0x7f &&
-      bufferToCheck[1] === 0x45 &&
-      bufferToCheck[2] === 0x4c &&
-      bufferToCheck[3] === 0x46
+      sampleBuf[0] === 0x7f &&
+      sampleBuf[1] === 0x45 &&
+      sampleBuf[2] === 0x4c &&
+      sampleBuf[3] === 0x46
     ) {
       return {
         isValid: false,
@@ -125,16 +189,53 @@ export const validateFileSafety = (
 
     // Mach-O binary (macOS): 0xCA 0xFE 0xBA 0xBE or 0xCE 0xFA 0xED 0xFE or 0xCF 0xFA 0xED 0xFE
     if (
-      (bufferToCheck[0] === 0xca && bufferToCheck[1] === 0xfe && bufferToCheck[2] === 0xba && bufferToCheck[3] === 0xbe) ||
-      (bufferToCheck[0] === 0xcf && bufferToCheck[1] === 0xfa && bufferToCheck[2] === 0xed && bufferToCheck[3] === 0xfe) ||
-      (bufferToCheck[0] === 0xce && bufferToCheck[1] === 0xfa && bufferToCheck[2] === 0xed && bufferToCheck[3] === 0xfe)
+      (sampleBuf[0] === 0xca && sampleBuf[1] === 0xfe && sampleBuf[2] === 0xba && sampleBuf[3] === 0xbe) ||
+      (sampleBuf[0] === 0xcf && sampleBuf[1] === 0xfa && sampleBuf[2] === 0xed && sampleBuf[3] === 0xfe) ||
+      (sampleBuf[0] === 0xce && sampleBuf[1] === 0xfa && sampleBuf[2] === 0xed && sampleBuf[3] === 0xfe)
     ) {
-      // Exclude Java class files if .class or .jar (though .jar is already blocked by extension)
       return {
         isValid: false,
         error: 'Security Alert: File signature matches a Mach-O executable binary. Upload rejected.',
         sanitizedFilename: sanitized,
       };
+    }
+
+    // 5. EICAR Antivirus Test Signature Check
+    const sampleString = sampleBuf.toString('utf-8', 0, Math.min(sampleBuf.length, 1024));
+    if (sampleString.includes(EICAR_SIGNATURE)) {
+      return {
+        isValid: false,
+        error: 'Security Alert: EICAR standard antivirus test signature detected. File rejected.',
+        sanitizedFilename: sanitized,
+      };
+    }
+
+    // 6. Web-shell / Script Heuristic Inspection (PHP tags, shell shebangs, eval decoder)
+    if (
+      sampleString.includes('<?php') ||
+      sampleString.includes('<?=') ||
+      sampleString.includes('eval(base64_decode') ||
+      sampleString.includes('eval(gzinflate') ||
+      sampleString.startsWith('#!/bin/sh') ||
+      sampleString.startsWith('#!/bin/bash')
+    ) {
+      return {
+        isValid: false,
+        error: 'Security Alert: Embedded executable script or web-shell signature detected. Upload rejected.',
+        sanitizedFilename: sanitized,
+      };
+    }
+
+    // 7. ZIP Archive Inspection for Nested Executables
+    if (sampleBuf[0] === 0x50 && sampleBuf[1] === 0x4b) {
+      const zipScan = scanZipForBlockedFiles(filePath, fileBuffer);
+      if (zipScan.containsBlocked) {
+        return {
+          isValid: false,
+          error: `Security Alert: Compressed archive contains dangerous executable or script: "${zipScan.blockedEntry}". Upload rejected.`,
+          sanitizedFilename: sanitized,
+        };
+      }
     }
   }
 

@@ -108,7 +108,7 @@ export const createSchedule = async (req: AuthRequest, res: Response): Promise<v
       title: `📅 Class Scheduled: ${schedule.title}`,
       content: `Session set for ${formattedDate} (${schedule.location}). Please mark your calendar.`,
       priority: 'IMPORTANT',
-      actionUrl: '/schedule',
+      actionUrl: `/schedule/${schedule.id}`,
     });
 
     res.status(201).json({ schedule });

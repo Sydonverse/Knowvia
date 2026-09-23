@@ -124,6 +124,7 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
             return (
               <div
                 key={ann.id}
+                id={`announcement-${ann.id}`}
                 className={`announcement-feed-card ${ann.isPinned ? 'pinned-card' : ''} ${
                   isGlobal ? 'global-ann-card' : ''
                 }`}

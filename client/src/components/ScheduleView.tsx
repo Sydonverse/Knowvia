@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Calendar,
   Clock,
@@ -9,14 +9,18 @@ import {
   CalendarCheck,
   Bell,
   Sparkles,
+  Edit3,
 } from 'lucide-react';
-import { ClassSchedule, DepartmentMemberContext } from '../types';
+import { ClassSchedule, DepartmentMemberContext, User } from '../types';
+import { EditScheduleModal } from './Modals';
 
 interface ScheduleViewProps {
   schedules: ClassSchedule[];
   activeDept: DepartmentMemberContext;
   isTutorOrAdmin: boolean;
+  currentUser?: User | null;
   onOpenScheduleModal: () => void;
+  onUpdateSchedule?: (id: string, data: any) => Promise<void>;
   onDeleteSchedule: (id: string) => void;
 }
 
@@ -24,9 +28,12 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
   schedules,
   activeDept,
   isTutorOrAdmin,
+  currentUser,
   onOpenScheduleModal,
+  onUpdateSchedule,
   onDeleteSchedule,
 }) => {
+  const [editingSchedule, setEditingSchedule] = useState<ClassSchedule | null>(null);
   const now = Date.now();
   const upcoming = schedules.filter((s) => new Date(s.endTime).getTime() >= now);
   const past = schedules.filter((s) => new Date(s.endTime).getTime() < now);
@@ -89,7 +96,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                   const start = new Date(item.startTime);
                   const end = new Date(item.endTime);
                   return (
-                    <div key={item.id} className="schedule-card">
+                    <div key={item.id} id={`schedule-${item.id}`} className="schedule-card">
                       <div
                         className="schedule-card-date-box"
                         style={{ borderColor: activeDept.colorHex || '#4f46e5' }}
@@ -152,13 +159,25 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                             )}
 
                             {isTutorOrAdmin && (
-                              <button
-                                className="btn-icon-danger"
-                                onClick={() => onDeleteSchedule(item.id)}
-                                title="Delete Class"
-                              >
-                                <Trash2 size={15} />
-                              </button>
+                              <>
+                                {(currentUser?.role === 'ADMIN' || !currentUser || item.scheduledById === currentUser.id) && onUpdateSchedule && (
+                                  <button
+                                    className="btn-icon-edit"
+                                    onClick={() => setEditingSchedule(item)}
+                                    title="Edit Class Schedule"
+                                  >
+                                    <Edit3 size={14} />
+                                    <span>Edit</span>
+                                  </button>
+                                )}
+                                <button
+                                  className="btn-icon-danger"
+                                  onClick={() => onDeleteSchedule(item.id)}
+                                  title="Delete Class"
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              </>
                             )}
                           </div>
                         </div>
@@ -180,7 +199,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                 {past.map((item) => {
                   const start = new Date(item.startTime);
                   return (
-                    <div key={item.id} className="schedule-card past-card">
+                    <div key={item.id} id={`schedule-${item.id}`} className="schedule-card past-card">
                       <div className="schedule-card-date-box past-date-box">
                         <span className="sched-month">{start.toLocaleString('default', { month: 'short' })}</span>
                         <span className="sched-day">{start.getDate()}</span>
@@ -200,6 +219,16 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {editingSchedule && onUpdateSchedule && (
+        <EditScheduleModal
+          isOpen={!!editingSchedule}
+          onClose={() => setEditingSchedule(null)}
+          onSubmit={onUpdateSchedule}
+          schedule={editingSchedule}
+          activeDept={activeDept}
+        />
       )}
     </div>
   );

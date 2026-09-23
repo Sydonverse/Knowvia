@@ -13,6 +13,7 @@ import notificationRoutes from './routes/notification.routes';
 import { initSocket } from './socket';
 import { initReminderScheduler } from './services/reminder.service';
 import { initAdminBootstrap } from './services/bootstrap.service';
+import { authenticate } from './middleware/auth';
 
 const app = express();
 const server = http.createServer(app);
@@ -53,9 +54,9 @@ app.use(
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Static file uploads directory
+// Static file uploads directory (protected by authenticate middleware)
 const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../uploads');
-app.use('/uploads', express.static(uploadDir));
+app.use('/uploads', authenticate, express.static(uploadDir));
 
 // Health check
 app.get('/health', (_req: Request, res: Response) => {

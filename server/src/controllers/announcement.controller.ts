@@ -130,7 +130,7 @@ export const createAnnouncement = async (req: AuthRequest, res: Response): Promi
       type: 'ANNOUNCEMENT',
       title: `📢 Announcement: ${announcement.title}`,
       body: announcement.content,
-      actionUrl: '/announcements',
+      actionUrl: `/announcements/${announcement.id}`,
       departmentId: targetDeptId,
     };
 

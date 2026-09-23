@@ -43,7 +43,7 @@ export const processClassReminders = async (): Promise<void> => {
         type: 'CLASS_REMINDER',
         title,
         body,
-        actionUrl: '/schedule',
+        actionUrl: `/schedule/${schedule.id}`,
         departmentId: schedule.departmentId,
       });
 

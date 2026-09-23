@@ -75,14 +75,18 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
 
     if (notif.actionUrl) {
       const url = notif.actionUrl.toLowerCase();
+      // Extract target ID if present in url path like /assignments/:id
+      const pathParts = notif.actionUrl.split('?')[0].split('/').filter(Boolean);
+      const targetId = pathParts.length > 1 ? pathParts[pathParts.length - 1] : undefined;
+
       if (url.includes('assignment')) {
-        onNavigate('assignments');
+        onNavigate('assignments', targetId);
       } else if (url.includes('schedule')) {
-        onNavigate('schedule');
+        onNavigate('schedule', targetId);
       } else if (url.includes('material')) {
-        onNavigate('materials');
+        onNavigate('materials', targetId);
       } else if (url.includes('announcement')) {
-        onNavigate('announcements');
+        onNavigate('announcements', targetId);
       }
       onClose();
     }

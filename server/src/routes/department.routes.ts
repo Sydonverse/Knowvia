@@ -58,7 +58,7 @@ router.get('/:slug', authenticate, departmentAccessGuard, getDepartment);
 // Learning Materials (File Sharing)
 router.get('/:slug/materials', authenticate, departmentAccessGuard, listMaterials);
 router.post('/:slug/materials', authenticate, departmentAccessGuard, upload.single('file'), uploadMaterial);
-router.get('/:slug/materials/download/:filename', authenticate, downloadMaterial);
+router.get('/:slug/materials/download/:filename', authenticate, departmentAccessGuard, downloadMaterial);
 router.delete('/:slug/materials/:id', authenticate, departmentAccessGuard, deleteMaterial);
 
 // Announcements

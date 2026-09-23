@@ -445,6 +445,13 @@ export const App: React.FC = () => {
     setActiveTab(tab);
     if (targetId) {
       setSelectedAssignmentId(targetId);
+      setTimeout(() => {
+        const prefix = tab === 'schedule' ? 'schedule' : tab === 'materials' ? 'material' : 'assignment';
+        const el = document.getElementById(`${prefix}-${targetId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 150);
     }
   };
 
@@ -491,6 +498,14 @@ export const App: React.FC = () => {
     if (!activeDept || !confirm('Are you sure you want to cancel this scheduled class?')) return;
     await api.schedules.delete(activeDept.slug, id);
     setSchedules((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const handleUpdateSchedule = async (id: string, data: any) => {
+    if (!activeDept) return;
+    const res = await api.schedules.update(activeDept.slug, id, data);
+    if (res.schedule) {
+      setSchedules((prev) => prev.map((s) => (s.id === id ? res.schedule : s)));
+    }
   };
 
   const handleCreateAssignment = async (data: any) => {
@@ -873,7 +888,9 @@ export const App: React.FC = () => {
                   schedules={schedules}
                   activeDept={activeDept}
                   isTutorOrAdmin={isTutorOrAdmin}
+                  currentUser={user}
                   onOpenScheduleModal={() => setShowScheduleModal(true)}
+                  onUpdateSchedule={handleUpdateSchedule}
                   onDeleteSchedule={handleDeleteSchedule}
                 />
               )}

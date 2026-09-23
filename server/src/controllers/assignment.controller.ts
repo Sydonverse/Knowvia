@@ -198,7 +198,7 @@ export const createAssignment = async (req: AuthRequest, res: Response): Promise
       title: `📝 New Assignment: ${assignment.title}`,
       content: `${assignment.description.slice(0, 180)} (${dueStr}). Check Assignment Management to submit your work.`,
       priority: 'IMPORTANT',
-      actionUrl: '/assignments',
+      actionUrl: `/assignments/${assignment.id}`,
     });
 
     res.status(201).json({ assignment });
@@ -285,7 +285,7 @@ export const submitAssignment = async (req: AuthRequest, res: Response): Promise
       type: 'ASSIGNMENT_CREATED',
       title: `📬 New Submission: ${assignment.title}`,
       body: `${user.firstName} ${user.lastName} submitted their assignment. Ready for review.`,
-      actionUrl: '/assignments',
+      actionUrl: `/assignments/${assignment.id}`,
       departmentId: assignment.departmentId,
     });
 
@@ -385,7 +385,7 @@ export const reviewSubmission = async (req: AuthRequest, res: Response): Promise
       type: 'SUBMISSION_REVIEWED',
       title: `Assignment Feedback: ${submission.assignment.title}`,
       body: `${verdictEmojis[verdict] || verdict}: "${comment}" — reviewed by ${user.firstName} ${user.lastName}`,
-      actionUrl: '/assignments',
+      actionUrl: `/assignments/${submission.assignmentId}`,
       departmentId: submission.assignment.departmentId,
     });
 

@@ -11,7 +11,7 @@ import {
   MapPin,
   Sparkles,
 } from 'lucide-react';
-import { DepartmentMemberContext, Assignment } from '../types';
+import { DepartmentMemberContext, Assignment, ClassSchedule } from '../types';
 import { validateFileBeforeUpload } from '../utils/fileValidator';
 
 // ─── 1. UPLOAD LEARNING MATERIAL MODAL ─────────────────────────
@@ -328,6 +328,188 @@ export const ScheduleClassModal: React.FC<ScheduleClassModalProps> = ({
             </button>
             <button type="submit" className="btn-primary" disabled={isSubmitting}>
               {isSubmitting ? 'Scheduling...' : 'Schedule Class Session'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ─── 2b. EDIT CLASS SCHEDULE MODAL ────────────────────────────
+interface EditScheduleModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (id: string, data: any) => Promise<void>;
+  schedule: ClassSchedule | null;
+  activeDept: DepartmentMemberContext;
+}
+
+export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  schedule,
+  activeDept,
+}) => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [location, setLocation] = useState('');
+  const [meetingLink, setMeetingLink] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const toLocalInputValue = (isoStr?: string) => {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  useEffect(() => {
+    if (schedule) {
+      setTitle(schedule.title || '');
+      setDescription(schedule.description || '');
+      setStartTime(toLocalInputValue(schedule.startTime));
+      setEndTime(toLocalInputValue(schedule.endTime));
+      setLocation(schedule.location || '');
+      setMeetingLink(schedule.meetingLink || '');
+      setError('');
+    }
+  }, [schedule]);
+
+  if (!isOpen || !schedule) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !startTime || !endTime) {
+      setError('Title, start time, and end time are required.');
+      return;
+    }
+
+    if (new Date(startTime) >= new Date(endTime)) {
+      setError('End time must be after start time.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      await onSubmit(schedule.id, {
+        title: title.trim(),
+        description: description.trim(),
+        startTime: new Date(startTime).toISOString(),
+        endTime: new Date(endTime).toISOString(),
+        location: location.trim(),
+        meetingLink: meetingLink.trim() || null,
+      });
+      onClose();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update class schedule');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-dialog">
+        <div className="modal-header">
+          <div className="modal-title-group">
+            <Calendar size={18} color="#4f46e5" />
+            <h3 className="modal-title">Edit Class Schedule</h3>
+          </div>
+          <button className="btn-close-modal" onClick={onClose} disabled={isSubmitting}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body">
+            {error && <div className="form-error-banner">{error}</div>}
+
+            <div className="form-field">
+              <label className="field-label">Class Session Title *</label>
+              <input
+                type="text"
+                placeholder="e.g., Live Hands-on Pen-Testing Lab"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="input-clean"
+              />
+            </div>
+
+            <div className="form-field">
+              <label className="field-label">Session Description</label>
+              <textarea
+                rows={2}
+                placeholder="What topics, exercises, or tools will be covered in this class?"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="textarea-clean"
+              />
+            </div>
+
+            <div className="form-grid-2">
+              <div className="form-field">
+                <label className="field-label">Start Date & Time *</label>
+                <input
+                  type="datetime-local"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  required
+                  className="input-clean"
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="field-label">End Date & Time *</label>
+                <input
+                  type="datetime-local"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  required
+                  className="input-clean"
+                />
+              </div>
+            </div>
+
+            <div className="form-grid-2">
+              <div className="form-field">
+                <label className="field-label">Location / Room</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Cyber Lab 2B / Virtual"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="input-clean"
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="field-label">Virtual Meeting Link (Zoom/Google Meet)</label>
+                <input
+                  type="url"
+                  placeholder="https://meet.google.com/xyz-knowvia"
+                  value={meetingLink}
+                  onChange={(e) => setMeetingLink(e.target.value)}
+                  className="input-clean"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="modal-footer">
+            <button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

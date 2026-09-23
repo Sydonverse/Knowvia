@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import prisma from '../config/prisma';
 import { AuthRequest } from '../middleware/auth';
+import { DepartmentRequest } from '../middleware/departmentGuard';
 import { validateFileSafety } from '../utils/fileValidator';
 import { createAutoAnnouncement } from '../services/announcement.service';
 import { persistUploadedFile, deleteUploadedFile } from '../services/storage.service';
@@ -128,7 +129,7 @@ export const uploadMaterial = async (req: AuthRequest, res: Response): Promise<v
       title: `📚 New Learning Material: ${material.title}`,
       content: `A new study material has been added: "${safetyCheck.sanitizedFilename}" (${sizeMb} MB). Available in your Learning Materials tab.`,
       priority: 'NORMAL',
-      actionUrl: '/materials',
+      actionUrl: `/materials/${material.id}`,
     });
 
     res.status(201).json({ material });
@@ -138,9 +139,12 @@ export const uploadMaterial = async (req: AuthRequest, res: Response): Promise<v
   }
 };
 
-export const downloadMaterial = async (req: AuthRequest, res: Response): Promise<void> => {
+export const downloadMaterial = async (req: DepartmentRequest, res: Response): Promise<void> => {
   try {
     const { filename } = req.params;
+    const user = req.user;
+    const dept = req.department;
+
     const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads');
     const safeFilename = path.basename(filename);
     const filePath = path.join(uploadDir, safeFilename);
@@ -148,6 +152,21 @@ export const downloadMaterial = async (req: AuthRequest, res: Response): Promise
     if (!fs.existsSync(filePath)) {
       res.status(404).json({ error: 'File not found on server' });
       return;
+    }
+
+    // Verify material exists in DB and belongs to this department (or user is system ADMIN)
+    if (user?.role !== 'ADMIN') {
+      const material = await prisma.material.findFirst({
+        where: {
+          fileUrl: { contains: safeFilename },
+          departmentId: dept?.id,
+        },
+      });
+
+      if (!material) {
+        res.status(403).json({ error: 'Access denied: File does not belong to this department' });
+        return;
+      }
     }
 
     // Force attachment download to avoid in-browser script execution
