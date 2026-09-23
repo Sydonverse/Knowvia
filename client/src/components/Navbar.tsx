@@ -137,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {showDeptMenu && (
-              <div className="dropdown-menu">
+              <div className="dropdown-menu dept-dropdown-menu">
                 <div className="dropdown-header">ADMINISTRATION SCOPE</div>
                 <button
                   className={`dropdown-item ${!activeDept ? 'active' : ''}`}
@@ -147,7 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                 >
                   <Building size={16} color="#6366f1" />
-                  <div style={{ textAlign: 'left' }}>
+                  <div style={{ textAlign: 'left', flex: 1, minWidth: 0 }}>
                     <div className="dropdown-item-title">Organization Overview</div>
                     <div className="dropdown-item-desc">Platform-wide statistics & command center</div>
                   </div>
@@ -165,7 +165,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }}
                   >
                     <span style={{ color: dept.colorHex }}>{getDeptIcon(dept.icon)}</span>
-                    <div style={{ textAlign: 'left' }}>
+                    <div style={{ textAlign: 'left', flex: 1, minWidth: 0 }}>
                       <div className="dropdown-item-title">{dept.name}</div>
                       <div className="dropdown-item-desc">{dept.description?.slice(0, 45)}...</div>
                     </div>
