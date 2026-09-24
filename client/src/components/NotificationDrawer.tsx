@@ -53,6 +53,8 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
     switch (type) {
       case 'ANNOUNCEMENT':
         return <Megaphone size={16} color="#f59e0b" />;
+      case 'CLASS_STARTING':
+        return <Calendar size={16} color="#ef4444" />;
       case 'CLASS_SCHEDULE':
       case 'CLASS_REMINDER':
         return <Calendar size={16} color="#10b981" />;

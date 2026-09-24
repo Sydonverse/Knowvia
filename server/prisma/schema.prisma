@@ -77,8 +77,9 @@ model ClassSchedule {
   endTime       DateTime
   location      String   @default("Online / Hub Room")
   meetingLink   String?
-  reminderSent  Boolean  @default(false)
-  createdAt     DateTime @default(now())
+  reminderSent        Boolean  @default(false)
+  startedReminderSent Boolean  @default(false)
+  createdAt           DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)

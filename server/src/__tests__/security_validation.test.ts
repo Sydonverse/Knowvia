@@ -8,6 +8,10 @@ import {
   MAX_FILE_SIZE_BYTES,
   BLOCKED_EXTENSIONS,
 } from '../utils/fileValidator';
+import {
+  processStartingNowReminders,
+  processAdvanceClassReminders,
+} from '../services/reminder.service';
 
 // Helper to construct a synthetic ZIP buffer with central directory records for testing
 function createMockZipBuffer(entryNames: string[]): Buffer {
@@ -348,6 +352,193 @@ describe('Knowvia Security Validation & Schedule Edit Suite', () => {
       expect(res.body.schedule).toBeDefined();
       expect(res.body.schedule.title).toBe(updatedTitle);
       expect(res.body.schedule.location).toBe(updatedLocation);
+    });
+  });
+
+  describe('Automated Class Reminders (1-Day Advance & Starting Now)', () => {
+    let reminderDeptId: string;
+    let reminderTutorId: string;
+    let reminderInternId: string;
+    let advanceScheduleId: string;
+    let startingNowScheduleId: string;
+
+    beforeAll(async () => {
+      const passwordHash = await bcrypt.hash('password123', 12);
+
+      const dept = await prisma.department.upsert({
+        where: { slug: 'reminders-test-dept' },
+        update: { isActive: true },
+        create: {
+          name: 'Reminders Test Dept',
+          slug: 'reminders-test-dept',
+          description: 'Department for testing automated reminders',
+          icon: 'bell',
+          colorHex: '#6366f1',
+          isActive: true,
+        },
+      });
+      reminderDeptId = dept.id;
+
+      const tutor = await prisma.user.upsert({
+        where: { email: 'reminder-tutor@knowvia.internal' },
+        update: { isActive: true, deletedAt: null },
+        create: {
+          email: 'reminder-tutor@knowvia.internal',
+          passwordHash,
+          firstName: 'Rem',
+          lastName: 'Tutor',
+          role: 'TUTOR',
+          isActive: true,
+        },
+      });
+      reminderTutorId = tutor.id;
+
+      const intern = await prisma.user.upsert({
+        where: { email: 'reminder-intern@knowvia.internal' },
+        update: { isActive: true, deletedAt: null },
+        create: {
+          email: 'reminder-intern@knowvia.internal',
+          passwordHash,
+          firstName: 'Rem',
+          lastName: 'Intern',
+          role: 'INTERN',
+          isActive: true,
+        },
+      });
+      reminderInternId = intern.id;
+
+      await prisma.departmentMember.upsert({
+        where: {
+          userId_departmentId: { userId: intern.id, departmentId: dept.id },
+        },
+        update: { status: 'APPROVED', role: 'INTERN' },
+        create: {
+          userId: intern.id,
+          departmentId: dept.id,
+          role: 'INTERN',
+          status: 'APPROVED',
+        },
+      });
+
+      // 1. Session scheduled for ~12 hours from now (within 24-26h window)
+      const advanceSched = await prisma.classSchedule.create({
+        data: {
+          departmentId: dept.id,
+          scheduledById: tutor.id,
+          title: 'Advance Reminder Session',
+          description: 'Test session in 12 hours',
+          startTime: new Date(Date.now() + 12 * 60 * 60 * 1000),
+          endTime: new Date(Date.now() + 14 * 60 * 60 * 1000),
+          location: 'Lab Beta',
+          reminderSent: false,
+          startedReminderSent: false,
+        },
+      });
+      advanceScheduleId = advanceSched.id;
+
+      // 2. Session starting right NOW (e.g. started 2 minutes ago, ending in 58 minutes)
+      const nowSched = await prisma.classSchedule.create({
+        data: {
+          departmentId: dept.id,
+          scheduledById: tutor.id,
+          title: 'Live Pen-Testing Workshop',
+          description: 'Test session starting right now',
+          startTime: new Date(Date.now() - 2 * 60 * 1000),
+          endTime: new Date(Date.now() + 58 * 60 * 1000),
+          location: 'Virtual Zoom Room',
+          meetingLink: 'https://zoom.us/j/123456789',
+          reminderSent: true, // 1-day reminder already sent
+          startedReminderSent: false,
+        },
+      });
+      startingNowScheduleId = nowSched.id;
+    });
+
+    afterAll(async () => {
+      await prisma.notification.deleteMany({
+        where: {
+          recipientId: { in: [reminderInternId, reminderTutorId] },
+        },
+      });
+      await prisma.classSchedule.deleteMany({
+        where: { id: { in: [advanceScheduleId, startingNowScheduleId] } },
+      });
+      await prisma.departmentMember.deleteMany({
+        where: { departmentId: reminderDeptId },
+      });
+      await prisma.department.deleteMany({
+        where: { id: reminderDeptId },
+      });
+      await prisma.user.deleteMany({
+        where: {
+          email: {
+            in: [
+              'reminder-tutor@knowvia.internal',
+              'reminder-intern@knowvia.internal',
+            ],
+          },
+        },
+      });
+    });
+
+    it('dispatches 1-day advance reminder and updates reminderSent flag', async () => {
+      await processAdvanceClassReminders();
+
+      const updated = await prisma.classSchedule.findUnique({
+        where: { id: advanceScheduleId },
+      });
+      expect(updated?.reminderSent).toBe(true);
+
+      const notif = await prisma.notification.findFirst({
+        where: {
+          recipientId: reminderInternId,
+          type: 'CLASS_REMINDER',
+          title: { contains: 'Upcoming Class Reminder' },
+        },
+      });
+      expect(notif).toBeDefined();
+    });
+
+    it('dispatches 3rd reminder (Starting Now) at scheduled class time with CLASS_STARTING type', async () => {
+      await processStartingNowReminders();
+
+      const updated = await prisma.classSchedule.findUnique({
+        where: { id: startingNowScheduleId },
+      });
+      expect(updated?.startedReminderSent).toBe(true);
+
+      const notif = await prisma.notification.findFirst({
+        where: {
+          recipientId: reminderInternId,
+          type: 'CLASS_STARTING',
+          title: { contains: 'Class Starting Now' },
+        },
+      });
+      expect(notif).toBeDefined();
+      expect(notif?.title).toContain('Live Pen-Testing Workshop');
+      expect(notif?.body).toContain('virtual meeting');
+      expect(notif?.actionUrl).toBe(`/schedule/${startingNowScheduleId}`);
+    });
+
+    it('prevents duplicate Starting Now reminders from being dispatched on subsequent cron ticks', async () => {
+      const countBefore = await prisma.notification.count({
+        where: {
+          recipientId: reminderInternId,
+          type: 'CLASS_STARTING',
+        },
+      });
+
+      // Run second time (simulating next minute's cron tick)
+      await processStartingNowReminders();
+
+      const countAfter = await prisma.notification.count({
+        where: {
+          recipientId: reminderInternId,
+          type: 'CLASS_STARTING',
+        },
+      });
+
+      expect(countAfter).toBe(countBefore);
     });
   });
 });

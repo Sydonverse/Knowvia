@@ -48,6 +48,7 @@ export interface ClassSchedule {
   location: string;
   meetingLink?: string | null;
   reminderSent?: boolean;
+  startedReminderSent?: boolean;
   createdAt: string;
   scheduler?: {
     id: string;

@@ -125,10 +125,17 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
                             <span>{item.location}</span>
                           </span>
 
-                          <span className="reminder-active-badge" title="Automated reminder dispatched 1 day before class">
-                            <Bell size={12} />
-                            <span>1-Day Reminder Active</span>
-                          </span>
+                          {start.getTime() <= now && end.getTime() >= now ? (
+                            <span className="live-now-badge" title="This class session is currently in progress">
+                              <span className="live-dot" />
+                              <span>Live Now</span>
+                            </span>
+                          ) : (
+                            <span className="reminder-active-badge" title="Automated reminders dispatched 1 day before class and at start time">
+                              <Bell size={12} />
+                              <span>Live & 1-Day Alerts</span>
+                            </span>
+                          )}
                         </div>
 
                         <h3 className="schedule-item-title">{item.title}</h3>
