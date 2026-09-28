@@ -250,10 +250,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <span>Assignment Progress & Milestones</span>
                   </h2>
                 </div>
-                <button className="btn-secondary btn-sm" onClick={() => onNavigate('assignments')}>
-                  <span>View All</span>
-                  <ArrowRight size={14} />
-                </button>
+                <div className="card-header-actions">
+                  <button className="btn-secondary btn-sm" onClick={() => onNavigate('assignments')}>
+                    <span>View All</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
               </div>
 
               {progressStats ? (
@@ -372,10 +374,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <span>Learning Materials & File Sharing</span>
                   </h2>
                 </div>
-                <button className="btn-secondary btn-sm" onClick={onOpenUpload}>
-                  <Upload size={14} />
-                  <span>Upload Material</span>
-                </button>
+                <div className="card-header-actions">
+                  <button className="btn-secondary btn-sm" onClick={onOpenUpload}>
+                    <Upload size={14} />
+                    <span>Upload Material</span>
+                  </button>
+                </div>
               </div>
               <p className="section-description">
                 Upload lecture notes, practice labs, guides, or resources for interns. Any file type
