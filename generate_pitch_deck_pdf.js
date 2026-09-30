@@ -758,33 +758,39 @@ const htmlContent = `<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- LIVE DEMO INTERLUDE -->
-  <div style="background: #f3e8ff; border: 1.5px dashed #a855f7; border-radius: 6px; padding: 7px 12px; margin-bottom: 12px; text-align: center;">
-    <strong style="color: #6b21a8; font-size: 9pt;">🔥 [2-MINUTE LIVE PRODUCT DEMONSTRATION OCCURS HERE — MINUTES 1:35 TO 3:35] 🔥</strong>
-    <p style="font-size: 7.5pt; color: #581c87; margin-top: 2px;">
-      Present live walkthrough in our hub: Student View &rarr; Tutor Schedule/Files &rarr; Scoped Chat. Return to Slide 5.
-    </p>
-  </div>
-
-  <!-- SLIDE 5 -->
+  <!-- SLIDE 5: LIVE DEMO -->
   <div class="slide-spec-card">
     <div class="slide-spec-header">
-      <span class="slide-num-title">Slide 5: How It Works (Simple, Fast & Secure for Our Hub)</span>
+      <span class="slide-num-title">Slide 5: Live Product Demo (2-Minute Walkthrough)</span>
+      <span class="slide-time-pill" style="background: #fbbf24; color: #78350f;">120 SECONDS</span>
+    </div>
+    <div class="slide-body">
+      <div class="callout callout-demo">
+        <strong style="color: #6b21a8; font-size: 8.5pt;">🔥 2-MINUTE LIVE DEMO OCCURS HERE (1:35 &ndash; 3:35)</strong><br>
+        Walkthrough: 1. Student View (Class countdown & homework checklist) &bull; 2. Tutor View (Instant timetable edit & safe file upload) &bull; 3. Classroom Chat (Private track channel).
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: HOW IT WORKS -->
+  <div class="slide-spec-card">
+    <div class="slide-spec-header">
+      <span class="slide-num-title">Slide 6: How It Works (Simple, Fast & Secure for Our Hub)</span>
       <span class="slide-time-pill">25 SECONDS</span>
     </div>
     <div class="slide-body">
       <div class="arch-box">
         <div class="arch-tier">
-          <div class="arch-tier-name" style="color: #4f46e5;">Works on Any Phone</div>
-          <div class="arch-tier-tech"><strong>No App Download Needed:</strong> Our interns simply open a link in their phone browser. It loads instantly like an app, saves mobile data, and works on any device.</div>
+          <div class="arch-tier-name" style="color: #4f46e5;">01 / Mobile Access</div>
+          <div class="arch-tier-tech"><strong>Works in Any Phone Browser:</strong> Opens instantly without downloading an app store binary, saving storage and mobile data.</div>
         </div>
         <div class="arch-tier">
-          <div class="arch-tier-name" style="color: #0891b2;">Instant Live Updates</div>
-          <div class="arch-tier-tech"><strong>Instant Notifications Across Tracks:</strong> When an instructor updates class times or posts a new assignment, all students in that track receive instant alerts.</div>
+          <div class="arch-tier-name" style="color: #0891b2;">02 / Real-Time Sync</div>
+          <div class="arch-tier-tech"><strong>Instant Notifications:</strong> Class reschedules and tutor notices alert interns instantly across devices.</div>
         </div>
         <div class="arch-tier">
-          <div class="arch-tier-name" style="color: #059669;">Hub Data Privacy & Safety</div>
-          <div class="arch-tier-tech"><strong>Safe Files & Data Sovereignty:</strong> All our hub's student records, grades, and materials remain private and secure, completely screened against viruses.</div>
+          <div class="arch-tier-name" style="color: #059669;">03 / Data Security</div>
+          <div class="arch-tier-tech"><strong>Safe In-House Storage:</strong> Uploaded materials are automatically scanned for malware, and each department's files remain private.</div>
         </div>
       </div>
       <div class="callout callout-script">
@@ -796,28 +802,25 @@ const htmlContent = `<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- PAGE BREAK -->
-  <div class="page-break"></div>
-
-  <!-- SLIDE 6 -->
+  <!-- SLIDE 7: MARKET ANALYSIS -->
   <div class="slide-spec-card">
     <div class="slide-spec-header">
-      <span class="slide-num-title">Slide 6: The Competition &mdash; Why Moodle, Frappe & WhatsApp Fall Short</span>
+      <span class="slide-num-title">Slide 7: Market Analysis &mdash; Current Makeshifts, Alternatives & The Operational Gap</span>
       <span class="slide-time-pill">25 SECONDS</span>
     </div>
     <div class="slide-body">
       <div class="card-grid-3">
         <div class="mockup-col">
-          <div class="mockup-col-header">Informal Chat (WhatsApp)</div>
+          <div class="mockup-col-header">Current Makeshifts (WhatsApp & Telegram)</div>
           <ul>
-            <li>Familiar, but chaotic and unmonitored.</li>
-            <li>No central progress tracking or grading.</li>
+            <li>Familiar, but noisy and chaotic.</li>
+            <li>No homework tracking or grading.</li>
             <li>Important notices buried in noise.</li>
             <li>Files expire; malware risks on hub laptops.</li>
           </ul>
         </div>
         <div class="mockup-col">
-          <div class="mockup-col-header">Open-Source (Moodle / Frappe)</div>
+          <div class="mockup-col-header">Existing Alternatives (Moodle & Frappe)</div>
           <ul>
             <li><strong>Heavy setup & upkeep:</strong> Costly server hosting and ongoing IT headaches.</li>
             <li><strong>No real-time chat:</strong> Interns still get dumped back onto WhatsApp.</li>
@@ -825,19 +828,19 @@ const htmlContent = `<!DOCTYPE html>
           </ul>
         </div>
         <div class="mockup-col" style="background: #f0fdf4; border-color: #bbf7d0;">
-          <div class="mockup-col-header" style="color: #166534;">Custom-Built for Us</div>
+          <div class="mockup-col-header" style="color: #166534;">The Operational Gap (Knowvia)</div>
           <ul>
-            <li><strong>Zero server bloat:</strong> Lightweight PWA.</li>
-            <li><strong>Live chat + classrooms:</strong> Unified in one place without WhatsApp.</li>
-            <li><strong>Department isolation:</strong> Clean track rooms.</li>
-            <li><strong>Hub Ownership:</strong> Fully branded for us.</li>
+            <li><strong>Zero server bloat:</strong> Lightweight phone web app.</li>
+            <li><strong>Chat + Classrooms combined:</strong> Unified in one place without WhatsApp.</li>
+            <li><strong>Department isolation:</strong> Pure focus for each track.</li>
+            <li><strong>100% Hub Ownership:</strong> Branded & maintained for us.</li>
           </ul>
         </div>
       </div>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (4:00 &ndash; 4:25)</div>
         <div class="script-text">
-          "Judges often ask: why not just deploy open-source tools like Moodle or Frappe? Here is the reality: open-source software is free, but hosting and maintaining it is expensive. More importantly, neither Moodle nor Frappe has native real-time chat—meaning students and tutors still end up back on WhatsApp! Knowvia combines live chat, class schedules, homework tracking, and file security in a single, lightweight tool custom-built for our hub."
+          "When we analyze the market, our hub's options are deeply flawed. Current makeshifts like WhatsApp and Telegram are too chaotic and lack grading. Existing open-source alternatives like Moodle and Frappe require heavy server bills and lack live chat—leaving interns right back on WhatsApp. Knowvia bridges this operational gap: lightweight, real-time chat plus classroom tracking in one platform, completely owned by our hub."
         </div>
       </div>
     </div>
