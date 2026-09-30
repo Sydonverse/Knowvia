@@ -936,16 +936,12 @@ const htmlContent = `<!DOCTYPE html>
           </div>
         </div>
 
-        <div class="mini-card" style="text-align: center; justify-content: center; background: #ffffff; padding: 8mm 6mm;">
+        <div class="mini-card" style="text-align: center; justify-content: center; align-items: center; background: #ffffff; padding: 5mm 6mm;">
           <div class="mini-card-tag" style="color: #16a34a;">DEPLOYMENT READY</div>
-          <div class="mini-card-title" style="font-size: 16pt;">Tested & Proven</div>
-          <div class="mini-card-text" style="margin-top: 2mm;">
-            Built by our hub's own talent &bull; 88 automated tests passed.<br><br>
-            <div style="display: inline-block; padding: 6px 16px; background: #eef2ff; border: 1.5px solid #4f46e5; border-radius: 8px; font-weight: 800; color: #4f46e5; font-size: 9pt;">
-              SCAN TO TEST LIVE ON MOBILE
-            </div>
-            <p style="margin-top: 3.5mm; font-size: 8.5pt; color: #64748b;">Repository: <code>Sydonverse / Knowvia</code></p>
-          </div>
+          <div class="mini-card-title" style="font-size: 14pt;">Scan to Test Live on Mobile</div>
+          <img src="knowvia_qr_code.png" alt="Knowvia QR Code" style="width: 34mm; height: 34mm; margin: 1.5mm auto; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 1.5mm; background: #ffffff;" />
+          <div style="font-size: 8pt; font-weight: 700; color: #4f46e5; margin-top: 1mm;">knowvia-five.vercel.app</div>
+          <p style="margin-top: 1mm; font-size: 7.5pt; color: #64748b;">Repository: <code>Sydonverse / Knowvia</code></p>
         </div>
       </div>
     </div>
