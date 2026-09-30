@@ -701,15 +701,16 @@ const htmlContent = `<!DOCTYPE html>
         <div class="mockup-col" style="background: #fffbeb; border-color: #fde68a;">
           <div class="mockup-col-header" style="color: #b45309;">💡 What Surprised Us Most</div>
           <p style="font-size: 7.4pt; color: #78350f; line-height: 1.35;">
-            "We realized our hub does not need expensive, rigid foreign software like Canvas or Blackboard that students abandon.<br><br>
-            <strong>What our hub really needed:</strong> The speed and ease of a chat app, but built specifically around <strong>our department schedules, homework tracking, and verified file safety.</strong>"
+            "We initially considered open-source platforms like <strong>Moodle</strong> or <strong>Frappe</strong>.<br><br>
+            <strong>Why they fell short:</strong> While the software is free, they require heavy server setup, complex maintenance, and <em>lack real-time chat</em>—meaning tutors and students still ended up living on WhatsApp.<br><br>
+            What our hub really needed was <strong>the speed and ease of messaging</strong>, built natively around <strong>our department schedules, homework tracking, and verified file safety.</strong>"
           </p>
         </div>
       </div>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (0:40 &ndash; 1:10)</div>
         <div class="script-text">
-          "When we surveyed our own hub's instructors and interns, 8 out of 10 of our students reported missing classes or deadlines because messages got lost in chat. And our tutors waste over 3 hours every week manually chasing submissions. But what surprised us was that our hub doesn't need expensive foreign portals like Canvas that students abandon. We need a tool as fast as messaging, but built around our department schedules, homework tracking, and file safety."
+          "When we surveyed our own hub's instructors and interns, 8 out of 10 of our students reported missing classes or deadlines because messages got lost in chat. And our tutors waste over 3 hours every week manually chasing submissions. We looked at open-source tools like Moodle and Frappe, but they are heavy to host, hard to maintain, and lack real-time chat. Our hub needs a lightweight tool that combines messaging with organized classrooms and file safety."
         </div>
       </div>
     </div>
@@ -801,13 +802,13 @@ const htmlContent = `<!DOCTYPE html>
   <!-- SLIDE 6 -->
   <div class="slide-spec-card">
     <div class="slide-spec-header">
-      <span class="slide-num-title">Slide 6: Why External Tools Don't Fit Our Hub</span>
+      <span class="slide-num-title">Slide 6: The Competition &mdash; Why Moodle, Frappe & WhatsApp Fall Short</span>
       <span class="slide-time-pill">25 SECONDS</span>
     </div>
     <div class="slide-body">
       <div class="card-grid-3">
         <div class="mockup-col">
-          <div class="mockup-col-header">Informal Channels (WhatsApp)</div>
+          <div class="mockup-col-header">Informal Chat (WhatsApp)</div>
           <ul>
             <li>Familiar, but chaotic and unmonitored.</li>
             <li>No central progress tracking or grading.</li>
@@ -816,28 +817,27 @@ const htmlContent = `<!DOCTYPE html>
           </ul>
         </div>
         <div class="mockup-col">
-          <div class="mockup-col-header">Foreign Portals (Canvas)</div>
+          <div class="mockup-col-header">Open-Source (Moodle / Frappe)</div>
           <ul>
-            <li>Expensive recurring USD subscriptions.</li>
-            <li>Rigid, bloated, and slow to onboard.</li>
-            <li>No real-time department chat.</li>
-            <li>Students rarely check or engage with them.</li>
+            <li><strong>Heavy setup & upkeep:</strong> Costly server hosting and ongoing IT headaches.</li>
+            <li><strong>No real-time chat:</strong> Interns still get dumped back onto WhatsApp.</li>
+            <li><strong>Clunky mobile UX:</strong> Complex navigation; learners abandon them.</li>
           </ul>
         </div>
         <div class="mockup-col" style="background: #f0fdf4; border-color: #bbf7d0;">
           <div class="mockup-col-header" style="color: #166534;">Custom-Built for Us</div>
           <ul>
-            <li><strong>Zero friction:</strong> Open in any phone browser.</li>
-            <li><strong>Department Isolation:</strong> No track noise.</li>
-            <li><strong>All-in-one:</strong> Schedules, homework, chat & files.</li>
-            <li><strong>Hub Ownership:</strong> Fully branded asset for our hub.</li>
+            <li><strong>Zero server bloat:</strong> Lightweight PWA.</li>
+            <li><strong>Live chat + classrooms:</strong> Unified in one place without WhatsApp.</li>
+            <li><strong>Department isolation:</strong> Clean track rooms.</li>
+            <li><strong>Hub Ownership:</strong> Fully branded for us.</li>
           </ul>
         </div>
       </div>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (4:00 &ndash; 4:25)</div>
         <div class="script-text">
-          "Why not use off-the-shelf tools? WhatsApp is familiar, but it is unmonitored, messy, and puts hub laptops at risk. Foreign portals like Canvas charge expensive recurring USD fees, are clunky, and lack local real-time chat. Knowvia is custom-built for our exact workflow, has zero recurring foreign software fees, is fully branded for our hub, and is ready to deploy today."
+          "Judges often ask: why not just deploy open-source tools like Moodle or Frappe? Here is the reality: open-source software is free, but hosting and maintaining it is expensive. More importantly, neither Moodle nor Frappe has native real-time chat—meaning students and tutors still end up back on WhatsApp! Knowvia combines live chat, class schedules, homework tracking, and file security in a single, lightweight tool custom-built for our hub."
         </div>
       </div>
     </div>
@@ -947,6 +947,11 @@ const htmlContent = `<!DOCTYPE html>
         <td><strong>QR Code Engagement</strong></td>
         <td>Hold up your phone or point to the QR code on Slide 8: <em>"Try it on your own phone right now."</em></td>
         <td>Turns judges from passive listeners into active product testers during Q&A.</td>
+      </tr>
+      <tr>
+        <td><strong>Judge Q&amp;A: Moodle &amp; Frappe</strong></td>
+        <td>When asked <em>"Why not open-source?"</em> answer: <em>"Free code isn't free to host or maintain. Neither has real-time chat, so students stay on WhatsApp. Knowvia solves both in one screen."</em></td>
+        <td>Directly addresses the open-source objection with commercial and practical clarity.</td>
       </tr>
     </tbody>
   </table>
