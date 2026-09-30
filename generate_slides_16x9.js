@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execFileSync } = require('child_process');
+const { spawn } = require('child_process');
 
 const htmlContent = `<!DOCTYPE html>
 <html lang="en">
@@ -155,7 +155,7 @@ const htmlContent = `<!DOCTYPE html>
     }
 
     .card-text {
-      font-size: 9pt;
+      font-size: 9.5pt;
       color: #475569;
       line-height: 1.45;
     }
@@ -243,7 +243,7 @@ const htmlContent = `<!DOCTYPE html>
     }
 
     .stat-desc {
-      font-size: 9pt;
+      font-size: 9.5pt;
       color: #475569;
       font-weight: 500;
       line-height: 1.35;
@@ -270,11 +270,10 @@ const htmlContent = `<!DOCTYPE html>
     .sticky-quote {
       font-size: 10pt;
       color: #713f12;
-      font-style: italic;
       line-height: 1.45;
     }
 
-    /* ARCHITECTURE TIERS (Agri-Vault style) */
+    /* BENEFIT ROWS (Simplified Architecture) */
     .tier-stack {
       display: flex;
       flex-direction: column;
@@ -292,16 +291,15 @@ const htmlContent = `<!DOCTYPE html>
     }
 
     .tier-label {
-      width: 50mm;
-      font-size: 10pt;
+      width: 60mm;
+      font-size: 10.5pt;
       font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.02em;
       flex-shrink: 0;
     }
 
     .tier-content {
-      font-size: 9.5pt;
+      font-size: 10pt;
       color: #334155;
       line-height: 1.4;
     }
@@ -343,7 +341,7 @@ const htmlContent = `<!DOCTYPE html>
     }
 
     .demo-step-text {
-      font-size: 9pt;
+      font-size: 9.5pt;
       color: #e2e8f0;
       line-height: 1.45;
     }
@@ -354,26 +352,26 @@ const htmlContent = `<!DOCTYPE html>
   <!-- SLIDE 1: COVER -->
   <div class="slide slide-hero">
     <div>
-      <div class="hero-badge">TRACK: EDTECH &bull; INTERNSHIP OPS</div>
+      <div class="hero-badge">TECH HUB ACADEMY PLATFORM</div>
       <div class="hero-title">KNOWVIA</div>
       <div class="hero-tagline">
-        The Department-Scoped Knowledge & Operations Platform Built Specifically for Multi-Department Tech Hub Programs.
+        The Simple, All-in-One Digital Campus Built for Multi-Department Tech Hub Programs.
       </div>
       <div class="hero-meta-row">
-        <div><strong>Time Format:</strong> 3-Minute Presentation + 2-Minute Demo</div>
-        <div><strong>Product Type:</strong> Progressive Web App (PWA)</div>
+        <div><strong>Presentation:</strong> 3-Minute Pitch + 2-Minute Live Demo</div>
+        <div><strong>Format:</strong> Works in Any Phone Browser (PWA)</div>
         <div><strong>Team:</strong> Sydonverse / Knowvia</div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 2: THE PROBLEM -->
+  <!-- SLIDE 2: THE PROBLEM (EVERYDAY REALITY) -->
   <div class="slide">
     <div class="slide-top">
       <div>
-        <div class="slide-category">Problem Statement</div>
-        <div class="slide-title">The Chaos of Informal Channels</div>
-        <div class="slide-subtitle">Why managing 50+ interns across WhatsApp and shared folders breaks down.</div>
+        <div class="slide-category">The Everyday Reality</div>
+        <div class="slide-title">Why WhatsApp Fails for Tech Hubs</div>
+        <div class="slide-subtitle">Managing 50+ students in large group chats creates daily confusion for tutors and learners.</div>
       </div>
       <div class="slide-timer-badge">0:15 &ndash; 0:40 (25s)</div>
     </div>
@@ -381,26 +379,26 @@ const htmlContent = `<!DOCTYPE html>
     <div class="slide-body">
       <div class="grid-3">
         <div class="card">
-          <div class="card-num">01 / Drowned Announcements</div>
-          <div class="card-heading">Chat Noise & Missed Classes</div>
+          <div class="card-num">01 / Lost Announcements</div>
+          <div class="card-heading">Drowned in Chat Noise</div>
           <div class="card-text">
-            Class links, reschedule notices, and curriculum updates get buried under hundreds of casual messages, memes, and banter.
+            Important class links, timetable changes, and tutor updates get buried under hundreds of casual messages, memes, and banter.
           </div>
         </div>
 
         <div class="card">
-          <div class="card-num">02 / Deliverable Blackhole</div>
-          <div class="card-heading">Fragmented Submissions</div>
+          <div class="card-num">02 / Lost Homework</div>
+          <div class="card-heading">Scattered Submissions</div>
           <div class="card-text">
-            Interns submit tasks across direct messages, random emails, and Google Drive links. Tutors lose track of who submitted what.
+            Students send assignments across direct messages, random emails, and shared folders. Tutors lose track of who submitted what.
           </div>
         </div>
 
         <div class="card">
-          <div class="card-num">03 / Security Vulnerability</div>
-          <div class="card-heading">Unvetted File Uploads</div>
+          <div class="card-num">03 / Unsafe Files</div>
+          <div class="card-heading">Expired & Risky Files</div>
           <div class="card-text">
-            Open groups allow executable files, suspicious scripts, and nested archives without validation, risking security across the hub.
+            Download links expire, phone storage fills up, and unvetted shared files put students' laptops at risk of malware and viruses.
           </div>
         </div>
       </div>
@@ -412,13 +410,13 @@ const htmlContent = `<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- SLIDE 3: USER RESEARCH -->
+  <!-- SLIDE 3: USER RESEARCH (WHAT SURPRISED US) -->
   <div class="slide">
     <div class="slide-top">
       <div>
-        <div class="slide-category">User Discovery & Insights</div>
-        <div class="slide-title">Field Discovery: What Surprised Us?</div>
-        <div class="slide-subtitle">Direct findings from surveying Hub Administrators, Track Tutors, and Interns.</div>
+        <div class="slide-category">What We Learned</div>
+        <div class="slide-title">Talking to Tutors & Students: What Surprised Us?</div>
+        <div class="slide-subtitle">Direct findings from interviewing hub managers, course instructors, and interns.</div>
       </div>
       <div class="slide-timer-badge">0:40 &ndash; 1:10 (30s)</div>
     </div>
@@ -427,21 +425,21 @@ const htmlContent = `<!DOCTYPE html>
       <div class="grid-2">
         <div>
           <div class="stat-box">
-            <div class="stat-number">78%</div>
-            <div class="stat-desc"><strong>of Interns</strong> reported missing crucial deadlines or meeting links due to chaotic group chat streams.</div>
+            <div class="stat-number">8 of 10</div>
+            <div class="stat-desc"><strong>Students</strong> reported missing at least one class or assignment deadline because messages got lost in chat.</div>
           </div>
           <div class="stat-box">
-            <div class="stat-number">4 of 5</div>
-            <div class="stat-desc"><strong>Tutors</strong> spent over 3 hours weekly manually chasing assignments across spreadsheets and DMs.</div>
+            <div class="stat-number">3+ Hours</div>
+            <div class="stat-desc"><strong>Wasted every week</strong> by tutors manually chasing student homework across spreadsheets and chat threads.</div>
           </div>
         </div>
 
         <div class="sticky-card">
-          <div class="sticky-title">💡 The Unexpected Revelation</div>
+          <div class="sticky-title">💡 What Surprised Us Most</div>
           <div class="sticky-quote">
-            "We initially assumed tech hubs needed a full enterprise LMS like Canvas or Blackboard.<br><br>
-            <strong>What we learned:</strong> Hubs actively avoid enterprise LMSs because they are clunky, expensive, and alienating for fast-paced cohorts.<br><br>
-            What hubs actually needed was <strong>the speed and familiarity of messaging</strong> combined with <strong>clean departmental boundaries, automated schedule alerts, and pre-storage file safety.</strong>"
+            "We initially assumed tech hubs needed heavy university software like Canvas or Blackboard.<br><br>
+            <strong>We were wrong.</strong> Hubs told us those systems are too complicated, too expensive, and students abandon them.<br><br>
+            What they really wanted was <strong>the speed and ease of a chat app</strong>, but with <strong>organized classrooms, clear schedules, and safe study materials.</strong>"
           </div>
         </div>
       </div>
@@ -459,7 +457,7 @@ const htmlContent = `<!DOCTYPE html>
       <div>
         <div class="slide-category">The Solution</div>
         <div class="slide-title">Meet Knowvia</div>
-        <div class="slide-subtitle">A high-performance Progressive Web App tailored for multi-department tech academies.</div>
+        <div class="slide-subtitle">A clean, easy-to-use digital home where every department stays focused and organized.</div>
       </div>
       <div class="slide-timer-badge">1:10 &ndash; 1:35 (25s)</div>
     </div>
@@ -468,25 +466,25 @@ const htmlContent = `<!DOCTYPE html>
       <div class="grid-3">
         <div class="card" style="border-top: 4px solid #4f46e5;">
           <div class="card-num">Pillar 01</div>
-          <div class="card-heading">Department-Scoped Isolation</div>
+          <div class="card-heading">Dedicated Classrooms</div>
           <div class="card-text">
-            Frontend, Backend, UI/UX, and Cyber operate in strictly partitioned workspaces with zero cross-track distraction or noise.
+            Web Development, Design, and Cybersecurity each have their own private workspace. Zero noise or distractions from other tracks.
           </div>
         </div>
 
         <div class="card" style="border-top: 4px solid #06b6d4;">
           <div class="card-num">Pillar 02</div>
-          <div class="card-heading">Schedule & Milestone First</div>
+          <div class="card-heading">Never Miss a Class</div>
           <div class="card-text">
-            Dashboard-first next class countdown with agenda, real-time WebSocket rescheduling, and personal assignment progress meters.
+            Your next class countdown is right at the top. A simple progress bar shows your homework status and feedback in real time.
           </div>
         </div>
 
         <div class="card" style="border-top: 4px solid #10b981;">
           <div class="card-num">Pillar 03</div>
-          <div class="card-heading">Pre-Storage File Security</div>
+          <div class="card-heading">Safe Study Materials</div>
           <div class="card-text">
-            Multi-tier file scanner: blocks 23 executable extensions, detects double extensions, inspects ZIP headers, and stops malware pre-upload.
+            Lesson notes and slides never expire. Files are automatically screened for viruses before anyone downloads them.
           </div>
         </div>
       </div>
@@ -503,10 +501,10 @@ const htmlContent = `<!DOCTYPE html>
     <div class="slide-top">
       <div>
         <div class="slide-category" style="background: rgba(255,255,255,0.15); color: #e0e7ff; border-color: rgba(255,255,255,0.3);">
-          Proof of Execution
+          Live Walkthrough
         </div>
-        <div class="slide-title">Live Product Walkthrough</div>
-        <div class="slide-subtitle">2-Minute seamless live demonstration across Intern, Tutor, and Real-Time channels.</div>
+        <div class="slide-title">A Day in the Life on Knowvia</div>
+        <div class="slide-subtitle">2-Minute live walkthrough showing the student, tutor, and classroom experience.</div>
       </div>
       <div class="slide-timer-badge" style="background: #fbbf24; color: #78350f; font-weight: 800;">
         1:35 &ndash; 3:35 (120 SECONDS)
@@ -516,32 +514,32 @@ const htmlContent = `<!DOCTYPE html>
     <div class="slide-body">
       <div class="grid-3">
         <div class="demo-step-card">
-          <div class="demo-step-time">Phase 1 &bull; 0:00 &ndash; 0:40</div>
-          <div class="demo-step-title">Intern Dashboard</div>
+          <div class="demo-step-time">Step 1 &bull; 0:00 &ndash; 0:40</div>
+          <div class="demo-step-title">The Student Experience</div>
           <div class="demo-step-text">
-            &bull; Live upcoming class countdown & link.<br>
-            &bull; Dynamic milestone meter (Approved/Pending).<br>
-            &bull; Notification bell deep-link scrolling.
+            &bull; Live countdown to today's class with meeting link.<br>
+            &bull; Clear homework checklist (Approved, Needs Work).<br>
+            &bull; Tap notification bell to jump straight to homework.
           </div>
         </div>
 
         <div class="demo-step-card">
-          <div class="demo-step-time">Phase 2 &bull; 0:40 &ndash; 1:20</div>
-          <div class="demo-step-title">Tutor Schedule & Uploads</div>
+          <div class="demo-step-time">Step 2 &bull; 0:40 &ndash; 1:20</div>
+          <div class="demo-step-title">The Tutor Experience</div>
           <div class="demo-step-text">
-            &bull; Real-time schedule editing modal.<br>
-            &bull; Instant WebSocket broadcast sync.<br>
-            &bull; Secure learning material file upload.
+            &bull; Change class schedule in one click (syncs live).<br>
+            &bull; Upload slides & guides with automatic virus check.<br>
+            &bull; Review and approve student homework in seconds.
           </div>
         </div>
 
         <div class="demo-step-card">
-          <div class="demo-step-time">Phase 3 &bull; 1:20 &ndash; 2:00</div>
-          <div class="demo-step-title">Department Chat</div>
+          <div class="demo-step-time">Step 3 &bull; 1:20 &ndash; 2:00</div>
+          <div class="demo-step-title">Focused Classroom Chat</div>
           <div class="demo-step-text">
-            &bull; Scoped channel (zero foreign noise).<br>
-            &bull; Quoted reply threading.<br>
-            &bull; Deterministic initials avatar engine.
+            &bull; Pure department discussion (zero outside chatter).<br>
+            &bull; Reply directly to questions with quoted threads.<br>
+            &bull; Clean, professional member badges.
           </div>
         </div>
       </div>
@@ -549,17 +547,17 @@ const htmlContent = `<!DOCTYPE html>
 
     <div class="slide-footer" style="border-top-color: rgba(255,255,255,0.1); color: #94a3b8;">
       <span style="color: #a5b4fc; font-weight: 700;">Live Demo Screen Active</span>
-      <span>Transitioning back to Architecture on Slide 6</span>
+      <span>Transitioning to "How It Works" on Slide 6</span>
     </div>
   </div>
 
-  <!-- SLIDE 6: TECH ARCHITECTURE -->
+  <!-- SLIDE 6: HOW IT WORKS (SIMPLIFIED TECH) -->
   <div class="slide">
     <div class="slide-top">
       <div>
-        <div class="slide-category">Engineering & System Design</div>
-        <div class="slide-title">System Architecture & Tech Stack</div>
-        <div class="slide-subtitle">Engineered for speed, strict security boundaries, and zero-cost cloud deployment.</div>
+        <div class="slide-category">How It Works</div>
+        <div class="slide-title">Built for Simplicity, Speed & Safety</div>
+        <div class="slide-subtitle">Reliable technology designed to work effortlessly for everyone, even on slow mobile data.</div>
       </div>
       <div class="slide-timer-badge">3:35 &ndash; 4:00 (25s)</div>
     </div>
@@ -567,26 +565,23 @@ const htmlContent = `<!DOCTYPE html>
     <div class="slide-body">
       <div class="tier-stack">
         <div class="tier-row" style="border-left: 5px solid #4f46e5;">
-          <div class="tier-label" style="color: #4f46e5;">Client Tier (PWA)</div>
+          <div class="tier-label" style="color: #4f46e5;">Works on Any Phone</div>
           <div class="tier-content">
-            <strong>React 19 + TypeScript + Vite:</strong> Ultra-fast responsive UI with a custom Vanilla CSS design system.<br>
-            <strong>Service Worker (Cache v6) & Web Push:</strong> Installable on mobile/desktop; background automated class alerts.
+            <strong>No App Store Download Required:</strong> Students and tutors simply open a link in their browser. It loads instantly like an app, saves mobile data, and works on any smartphone or laptop.
           </div>
         </div>
 
         <div class="tier-row" style="border-left: 5px solid #0891b2;">
-          <div class="tier-label" style="color: #0891b2;">Application Layer</div>
+          <div class="tier-label" style="color: #0891b2;">Instant Live Updates</div>
           <div class="tier-content">
-            <strong>Node.js & Express API:</strong> Strict JWT role-scoping and department authorization guards.<br>
-            <strong>Socket.io & File Heuristics:</strong> Room isolation by <code>dept:{slug}</code> with an in-memory ZIP central directory scanner.
+            <strong>Never Miss an Alert:</strong> When a tutor reschedules a class or posts a new assignment, everyone receives an instant alert on their screen—no refreshing required.
           </div>
         </div>
 
         <div class="tier-row" style="border-left: 5px solid #059669;">
-          <div class="tier-label" style="color: #059669;">Data & Cloud Tier</div>
+          <div class="tier-label" style="color: #059669;">Built-in Safety & Privacy</div>
           <div class="tier-content">
-            <strong>Supabase PostgreSQL with Row-Level Security (RLS):</strong> Prevents unauthorized cross-department data queries.<br>
-            <strong>Prisma ORM & S3 Storage:</strong> Strict type-safety, connection pooling, and authenticated material streaming.
+            <strong>Safe Files & Private Workspaces:</strong> Every study file is automatically screened for viruses before storage, and each department's private discussions stay completely secure.
           </div>
         </div>
       </div>
@@ -598,13 +593,13 @@ const htmlContent = `<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- SLIDE 7: MARKET & GAPS -->
+  <!-- SLIDE 7: MARKET & WHY WE WIN -->
   <div class="slide">
     <div class="slide-top">
       <div>
-        <div class="slide-category">Market Opportunity</div>
-        <div class="slide-title">Market Analysis & The Knowvia Gap</div>
-        <div class="slide-subtitle">Capturing the underserved intersection between chaotic chat and clunky enterprise LMSs.</div>
+        <div class="slide-category">Why Knowvia Wins</div>
+        <div class="slide-title">Why Existing Tools Don't Work</div>
+        <div class="slide-subtitle">The best of both worlds: as easy as a chat app, as structured as a digital school.</div>
       </div>
       <div class="slide-timer-badge">4:00 &ndash; 4:25 (25s)</div>
     </div>
@@ -613,39 +608,39 @@ const htmlContent = `<!DOCTYPE html>
       <div class="grid-3">
         <div class="card">
           <div class="card-num" style="color: #64748b;">Informal Apps</div>
-          <div class="card-heading">WhatsApp / Telegram</div>
+          <div class="card-heading">WhatsApp & Telegram</div>
           <div class="card-text">
             <ul>
-              <li>Free and familiar to everyone.</li>
-              <li>Zero academic structure or grading.</li>
-              <li>High noise; lost assignments.</li>
-              <li>Files expire; malware risks.</li>
+              <li>Easy to use, but messy and chaotic.</li>
+              <li>No homework tracking or grading.</li>
+              <li>Constant chat noise; missed deadlines.</li>
+              <li>Files expire; virus risks.</li>
             </ul>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-num" style="color: #dc2626;">Enterprise LMS</div>
-          <div class="card-heading">Canvas / Blackboard</div>
+          <div class="card-num" style="color: #dc2626;">School Portals</div>
+          <div class="card-heading">Canvas & Blackboard</div>
           <div class="card-text">
             <ul>
-              <li>Robust gradebooks & modules.</li>
-              <li>Prohibitively expensive for hubs.</li>
-              <li>Heavyweight, slow onboarding.</li>
-              <li>Poor real-time messaging.</li>
+              <li>Built for universities, not fast bootcamps.</li>
+              <li>Very expensive for local tech hubs.</li>
+              <li>Heavy, slow, and hard to learn.</li>
+              <li>Students rarely check them.</li>
             </ul>
           </div>
         </div>
 
         <div class="card" style="background: #f0fdf4; border-color: #86efac;">
           <div class="card-num" style="color: #16a34a;">The Knowvia Advantage</div>
-          <div class="card-heading" style="color: #14532d;">The Perfect Balance</div>
+          <div class="card-heading" style="color: #14532d;">The Sweet Spot</div>
           <div class="card-text">
             <ul>
-              <li><strong>Zero friction:</strong> Installable PWA.</li>
-              <li><strong>Department Isolation:</strong> No track noise.</li>
-              <li><strong>Integrated Core:</strong> Schedule, assignments, file safety, and chat in one.</li>
-              <li><strong>Addressable:</strong> 150+ hubs & 3MTT centers.</li>
+              <li><strong>Zero friction:</strong> Open in any phone browser.</li>
+              <li><strong>Department Rooms:</strong> No outside noise.</li>
+              <li><strong>Everything in one place:</strong> Schedules, homework, chat & safe files.</li>
+              <li><strong>Huge Reach:</strong> 150+ hubs & youth programs.</li>
             </ul>
           </div>
         </div>
@@ -662,9 +657,9 @@ const htmlContent = `<!DOCTYPE html>
   <div class="slide">
     <div class="slide-top">
       <div>
-        <div class="slide-category">Commercials & Team</div>
-        <div class="slide-title">Business Model & The Team</div>
-        <div class="slide-subtitle">Sustainable B2B institutional monetization backed by proven product execution.</div>
+        <div class="slide-category">The Business & Team</div>
+        <div class="slide-title">How We Grow & Who We Are</div>
+        <div class="slide-subtitle">A sustainable partnership model backed by a team passionate about tech education.</div>
       </div>
       <div class="slide-timer-badge">4:25 &ndash; 5:00 (35s &bull; Q&A Anchor)</div>
     </div>
@@ -672,23 +667,23 @@ const htmlContent = `<!DOCTYPE html>
     <div class="slide-body">
       <div class="grid-2">
         <div class="card">
-          <div class="card-num">B2B SaaS Revenue Model</div>
-          <div class="card-heading">Hub-Level Licensing</div>
+          <div class="card-num">How We Make Money</div>
+          <div class="card-heading">B2B Hub Partnerships</div>
           <div class="card-text">
-            &bull; <strong>Hub Cohort License:</strong> Annual subscription per cohort (up to 5 departments).<br>
-            &bull; <strong>Enterprise Custom Tier:</strong> Dedicated domain, branded UI, storage expansion & SLA.<br>
-            &bull; <strong>High Margins:</strong> 85%+ gross margin enabled by lightweight, modern cloud architecture.
+            &bull; <strong>Affordable Hub License:</strong> Tech hubs pay a simple annual fee per cohort (covering all departments).<br>
+            &bull; <strong>Custom Enterprise Tier:</strong> For large government programs (like 3MTT) needing custom branding & storage.<br>
+            &bull; <strong>A Clear Win-Win:</strong> Hubs save hundreds of hours of admin chaos; students actually finish their courses.
           </div>
         </div>
 
         <div class="card" style="background: #f8fafc; border-color: #cbd5e1; text-align: center;">
-          <div class="card-num">Team & Live Access</div>
+          <div class="card-num">Meet the Team</div>
           <div class="card-heading">Ready for Deployment</div>
           <div class="card-text" style="margin-top: 2mm;">
-            <strong>Engineering Team:</strong> Frontend / PWA, Backend / RLS, UX & Research.<br>
-            <strong>Verification:</strong> 88 / 88 Passing Automated Tests &bull; Production Certified.<br><br>
+            <strong>Built by:</strong> Dedicated team of frontend, backend, and user researchers.<br>
+            <strong>Tested & Proven:</strong> 88 automated tests passed &bull; Production Certified.<br><br>
             <div style="display: inline-block; padding: 4px 12px; background: #ffffff; border: 1.5px solid #4f46e5; border-radius: 6px; font-weight: 700; color: #4f46e5; font-size: 8pt;">
-              SCAN QR TO TEST LIVE PWA ON MOBILE
+              SCAN WITH YOUR PHONE CAMERA TO TRY LIVE
             </div>
             <p style="margin-top: 2mm; font-size: 7.5pt; color: #64748b;">GitHub: Sydonverse / Knowvia</p>
           </div>
@@ -706,10 +701,12 @@ const htmlContent = `<!DOCTYPE html>
 </html>`;
 
 const tempHtmlPath = path.resolve('slides_temp.html');
+const presentationHtmlPath = path.resolve('presentation_slides.html');
 const outputPdfPath = path.resolve('Project_Knowvia_Presentation_Slides_16x9.pdf');
 const tempUserDataDir = path.join(os.tmpdir(), 'edge_slides_pdf_' + Date.now());
 
 fs.writeFileSync(tempHtmlPath, htmlContent, 'utf8');
+fs.writeFileSync(presentationHtmlPath, htmlContent, 'utf8');
 
 const edgeExe = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 const chromeExe = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
@@ -719,31 +716,41 @@ console.log('Using browser binary:', browserExe);
 console.log('Writing HTML to:', tempHtmlPath);
 console.log('Compiling 16:9 Presentation Slides to PDF:', outputPdfPath);
 
-try {
-  execFileSync(browserExe, [
-    '--headless',
-    '--disable-gpu',
-    '--no-sandbox',
-    '--user-data-dir=' + tempUserDataDir,
-    '--no-pdf-header-footer',
-    '--print-to-pdf=' + outputPdfPath,
-    'file:///' + tempHtmlPath.replace(/\\/g, '/')
-  ], { timeout: 30000 });
-
-  const stats = fs.statSync(outputPdfPath);
-  console.log('SUCCESS: 16:9 Presentation Slides PDF Generated successfully!');
-  console.log('File size:', stats.size, 'bytes');
-  console.log('Absolute PDF Path:', outputPdfPath);
-} catch (err) {
-  console.error('PDF generation error:', err.message);
-  process.exit(1);
-} finally {
-  if (fs.existsSync(tempHtmlPath)) {
-    fs.unlinkSync(tempHtmlPath);
-  }
-  if (fs.existsSync(tempUserDataDir)) {
-    try {
-      fs.rmSync(tempUserDataDir, { recursive: true, force: true });
-    } catch {}
-  }
+if (fs.existsSync(outputPdfPath)) {
+  fs.unlinkSync(outputPdfPath);
 }
+
+const child = spawn(browserExe, [
+  '--headless',
+  '--disable-gpu',
+  '--no-sandbox',
+  '--user-data-dir=' + tempUserDataDir,
+  '--no-pdf-header-footer',
+  '--print-to-pdf=' + outputPdfPath,
+  'file:///' + tempHtmlPath.replace(/\\/g, '/')
+]);
+
+const interval = setInterval(() => {
+  if (fs.existsSync(outputPdfPath)) {
+    const stats = fs.statSync(outputPdfPath);
+    if (stats.size > 20000) {
+      clearInterval(interval);
+      console.log('SUCCESS: 16:9 Presentation Slides PDF Generated successfully!');
+      console.log('File size:', stats.size, 'bytes');
+      console.log('Absolute PDF Path:', outputPdfPath);
+      try { child.kill(); } catch {}
+      setTimeout(() => process.exit(0), 500);
+    }
+  }
+}, 500);
+
+setTimeout(() => {
+  clearInterval(interval);
+  if (fs.existsSync(outputPdfPath)) {
+    console.log('PDF was written before timeout.');
+    process.exit(0);
+  } else {
+    console.error('Timeout waiting for PDF generation');
+    process.exit(1);
+  }
+}, 15000);
