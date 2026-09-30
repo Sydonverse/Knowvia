@@ -622,22 +622,22 @@ const htmlContent = `<!DOCTYPE html>
       <div class="card-grid-2">
         <div>
           <p><strong>Primary Title:</strong> <code style="font-size: 8.5pt; color: #4f46e5; font-weight: bold;">KNOWVIA</code></p>
-          <p><strong>Subtitle:</strong> The Simple, All-in-One Digital Campus for Tech Hubs.</p>
-          <p><strong>Badge:</strong> Tech Hub Academy Platform &bull; Team Sydonverse / Knowvia</p>
+          <p><strong>Subtitle:</strong> A Purpose-Built Digital Campus & Operations Platform for Our Hub.</p>
+          <p><strong>Badge:</strong> In-House Hub Academy Platform &bull; Team Sydonverse / Knowvia</p>
         </div>
         <div class="mockup-col">
           <div class="mockup-col-header">Visual Style</div>
           <ul>
             <li>Dark, sleek background with crisp white typography.</li>
-            <li>Tagline explaining the value in one sentence.</li>
-            <li>No technical buzzwords.</li>
+            <li>Tagline explaining the direct value to our hub.</li>
+            <li>No generic external startup phrasing.</li>
           </ul>
         </div>
       </div>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (0:00 &ndash; 0:15)</div>
         <div class="script-text">
-          "Good day, everyone. We are Team [Name], and this is Knowvia. Knowvia is a simple, all-in-one digital campus built specifically to replace the confusion of WhatsApp group chats in tech hub training programs."
+          "Good day, leadership and mentors. We are Team [Name], and this is Knowvia. Knowvia is a digital campus and operations platform built exclusively for our hub, designed to replace the chaos of WhatsApp groups with a unified, professional workspace tailored for our internship cohorts."
         </div>
       </div>
     </div>
@@ -646,7 +646,7 @@ const htmlContent = `<!DOCTYPE html>
   <!-- SLIDE 2 -->
   <div class="slide-spec-card">
     <div class="slide-spec-header">
-      <span class="slide-num-title">Slide 2: The Problem (Why WhatsApp Fails for Tech Hubs)</span>
+      <span class="slide-num-title">Slide 2: The Challenge in Our Hub (Why WhatsApp Fails)</span>
       <span class="slide-time-pill">25 SECONDS</span>
     </div>
     <div class="slide-body">
@@ -654,26 +654,26 @@ const htmlContent = `<!DOCTYPE html>
         <div class="mockup-col">
           <div class="mockup-col-header">01 / Lost Announcements</div>
           <ul>
-            <li>Class links and schedule changes get buried under hundreds of messages, memes, and banter.</li>
+            <li>Tutor class links, venue changes, and urgent updates get buried under chat banter and memes.</li>
           </ul>
         </div>
         <div class="mockup-col">
           <div class="mockup-col-header">02 / Lost Homework</div>
           <ul>
-            <li>Students send tasks across DMs, emails, and random links. Tutors lose track of who submitted what.</li>
+            <li>Interns submit tasks across personal DMs, emails, and shared folders; tutors lose track of submissions.</li>
           </ul>
         </div>
         <div class="mockup-col">
-          <div class="mockup-col-header">03 / Unsafe Files</div>
+          <div class="mockup-col-header">03 / Security & File Risks</div>
           <ul>
-            <li>Download links expire, phone storage fills up, and unvetted shared files put laptops at risk of viruses.</li>
+            <li>Download links expire, phone storage fills up, and unvetted shared files put hub laptops at risk of viruses.</li>
           </ul>
         </div>
       </div>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (0:15 &ndash; 0:40)</div>
         <div class="script-text">
-          "Today, tech hubs manage dozens of students across Web Development, Graphic Design, and Cybersecurity using WhatsApp groups and shared folders. The result? Important announcements drown in chat noise, homework submissions get lost across direct messages, and random shared files put students' laptops at risk of viruses."
+          "Today, right here in our hub, we manage over 50 interns across Frontend, Backend, UI/UX, and Cybersecurity using open WhatsApp groups. The result? Important announcements drown in chat noise, homework submissions get scattered across personal DMs, and unvetted file sharing exposes our hub's computers to serious malware risks."
         </div>
       </div>
     </div>
@@ -685,32 +685,31 @@ const htmlContent = `<!DOCTYPE html>
   <!-- SLIDE 3 -->
   <div class="slide-spec-card">
     <div class="slide-spec-header">
-      <span class="slide-num-title">Slide 3: What We Learned & "What Surprised Us?"</span>
+      <span class="slide-num-title">Slide 3: Internal Hub Feedback & "What Surprised Us?"</span>
       <span class="slide-time-pill">30 SECONDS</span>
     </div>
     <div class="slide-body">
       <div class="card-grid-2">
         <div class="mockup-col">
-          <div class="mockup-col-header">Real Feedback From Hubs</div>
+          <div class="mockup-col-header">Our Internal Survey Findings</div>
           <ul>
-            <li><strong>8 of 10 Students</strong> missed a class or homework deadline because messages got lost in chat.</li>
-            <li><strong>3+ Hours Every Week</strong> wasted by tutors manually chasing student homework across spreadsheets.</li>
-            <li><strong>100% of Hub Managers</strong> wanted simple organization without expensive software bills.</li>
+            <li><strong>8 of 10 of Our Interns</strong> reported missing a class or homework deadline because notices got lost in chat.</li>
+            <li><strong>3+ Hours Every Week</strong> wasted by each tutor manually chasing deliverables across spreadsheets.</li>
+            <li><strong>100% Alignment:</strong> Tutors and students want organized, quiet departmental classrooms.</li>
           </ul>
         </div>
         <div class="mockup-col" style="background: #fffbeb; border-color: #fde68a;">
           <div class="mockup-col-header" style="color: #b45309;">💡 What Surprised Us Most</div>
           <p style="font-size: 7.4pt; color: #78350f; line-height: 1.35;">
-            "We initially assumed tech hubs needed heavy university software like Canvas or Blackboard.<br><br>
-            <strong>We were wrong.</strong> Hubs told us those systems are too complicated, too expensive, and students abandon them.<br><br>
-            What they really wanted was <strong>the speed and ease of a chat app</strong>, but with <strong>organized classrooms, clear schedules, and safe study materials.</strong>"
+            "We realized our hub does not need expensive, rigid foreign software like Canvas or Blackboard that students abandon.<br><br>
+            <strong>What our hub really needed:</strong> The speed and ease of a chat app, but built specifically around <strong>our department schedules, homework tracking, and verified file safety.</strong>"
           </p>
         </div>
       </div>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (0:40 &ndash; 1:10)</div>
         <div class="script-text">
-          "When we interviewed tech hub managers and tutors, 8 out of 10 students told us they had missed classes or homework deadlines because messages got buried in chat. But here is what surprised us: tech hubs do not want complicated university software like Canvas. They find them hard to learn, expensive, and students abandon them. What they really wanted was the speed and ease of a chat app, but with organized classrooms, clear schedules, and safe study materials."
+          "When we surveyed our own hub's instructors and interns, 8 out of 10 of our students reported missing classes or deadlines because messages got lost in chat. And our tutors waste over 3 hours every week manually chasing submissions. But what surprised us was that our hub doesn't need expensive foreign portals like Canvas that students abandon. We need a tool as fast as messaging, but built around our department schedules, homework tracking, and file safety."
         </div>
       </div>
     </div>
@@ -719,7 +718,7 @@ const htmlContent = `<!DOCTYPE html>
   <!-- SLIDE 4 -->
   <div class="slide-spec-card">
     <div class="slide-spec-header">
-      <span class="slide-num-title">Slide 4: Our Solution (Meet Knowvia) & Demo Trigger</span>
+      <span class="slide-num-title">Slide 4: Our Solution (Meet Knowvia &mdash; Built for Our Hub)</span>
       <span class="slide-time-pill">25 SECONDS</span>
     </div>
     <div class="slide-body">
@@ -727,21 +726,21 @@ const htmlContent = `<!DOCTYPE html>
         <div class="mockup-col">
           <div class="mockup-col-header">Pillar 1: Dedicated Rooms</div>
           <ul>
-            <li>Web, Design, and Cyber each have their own private space.</li>
+            <li>Frontend, Backend, Design, and Cyber cohorts each have their own private workspace.</li>
             <li>Zero noise or distractions from other tracks.</li>
           </ul>
         </div>
         <div class="mockup-col">
-          <div class="mockup-col-header">Pillar 2: Never Miss a Class</div>
+          <div class="mockup-col-header">Pillar 2: Never Miss a Session</div>
           <ul>
-            <li>Next class countdown is right at the top.</li>
-            <li>Simple progress bar shows completed homework.</li>
+            <li>Next class countdown is right at the top of the phone screen.</li>
+            <li>Live progress bar shows completed homework & feedback.</li>
           </ul>
         </div>
         <div class="mockup-col">
-          <div class="mockup-col-header">Pillar 3: Safe Study Files</div>
+          <div class="mockup-col-header">Pillar 3: Safe Study Archive</div>
           <ul>
-            <li>Lesson notes and slides never expire.</li>
+            <li>Our lesson notes and slides never expire.</li>
             <li>Files are automatically screened for viruses.</li>
           </ul>
         </div>
@@ -752,7 +751,7 @@ const htmlContent = `<!DOCTYPE html>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (1:10 &ndash; 1:35)</div>
         <div class="script-text">
-          "That is why we built Knowvia. Knowvia gives every department its own quiet classroom, keeps class schedules front and center with countdown timers, and screens every uploaded file for safety. But rather than just telling you, let us show you what a day in the life looks like on Knowvia."
+          "That is why we built Knowvia exclusively for our hub. It gives our Frontend, Backend, Design, and Cyber cohorts their own dedicated classrooms, anchors class countdowns right on their phones, and keeps our study materials permanently safe. Let us take 2 minutes to show you how Knowvia works live right here in our hub."
         </div>
       </div>
     </div>
@@ -762,35 +761,35 @@ const htmlContent = `<!DOCTYPE html>
   <div style="background: #f3e8ff; border: 1.5px dashed #a855f7; border-radius: 6px; padding: 7px 12px; margin-bottom: 12px; text-align: center;">
     <strong style="color: #6b21a8; font-size: 9pt;">🔥 [2-MINUTE LIVE PRODUCT DEMONSTRATION OCCURS HERE — MINUTES 1:35 TO 3:35] 🔥</strong>
     <p style="font-size: 7.5pt; color: #581c87; margin-top: 2px;">
-      Present live walkthrough following the Section 3 Playbook: Student View &rarr; Tutor Schedule/Files &rarr; Scoped Chat. Return to Slide 5.
+      Present live walkthrough in our hub: Student View &rarr; Tutor Schedule/Files &rarr; Scoped Chat. Return to Slide 5.
     </p>
   </div>
 
   <!-- SLIDE 5 -->
   <div class="slide-spec-card">
     <div class="slide-spec-header">
-      <span class="slide-num-title">Slide 5: How It Works (Simplicity, Speed & Safety)</span>
+      <span class="slide-num-title">Slide 5: How It Works (Simple, Fast & Secure for Our Hub)</span>
       <span class="slide-time-pill">25 SECONDS</span>
     </div>
     <div class="slide-body">
       <div class="arch-box">
         <div class="arch-tier">
           <div class="arch-tier-name" style="color: #4f46e5;">Works on Any Phone</div>
-          <div class="arch-tier-tech"><strong>No App Download Needed:</strong> Students simply tap a link in their browser. Loads instantly like an app, saves mobile data, and works on any phone or laptop.</div>
+          <div class="arch-tier-tech"><strong>No App Download Needed:</strong> Our interns simply open a link in their phone browser. It loads instantly like an app, saves mobile data, and works on any device.</div>
         </div>
         <div class="arch-tier">
           <div class="arch-tier-name" style="color: #0891b2;">Instant Live Updates</div>
-          <div class="arch-tier-tech"><strong>Never Miss an Alert:</strong> When a tutor reschedules a class or posts a task, everyone gets notified right away—no refreshing required.</div>
+          <div class="arch-tier-tech"><strong>Instant Notifications Across Tracks:</strong> When an instructor updates class times or posts a new assignment, all students in that track receive instant alerts.</div>
         </div>
         <div class="arch-tier">
-          <div class="arch-tier-name" style="color: #059669;">Built-in Safety</div>
-          <div class="arch-tier-tech"><strong>Safe Files & Privacy:</strong> Every uploaded file is screened for viruses before storage, and each department's private discussions stay strictly private.</div>
+          <div class="arch-tier-name" style="color: #059669;">Hub Data Privacy & Safety</div>
+          <div class="arch-tier-tech"><strong>Safe Files & Data Sovereignty:</strong> All our hub's student records, grades, and materials remain private and secure, completely screened against viruses.</div>
         </div>
       </div>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (3:35 &ndash; 4:00)</div>
         <div class="script-text">
-          "Under the hood, Knowvia is engineered for everyday simplicity. First, students and tutors do not need to download a heavy app—it opens instantly in any phone browser and saves mobile data. Second, when a tutor changes a class, everyone gets alerted live without refreshing. And third, every uploaded file is automatically checked for viruses before anyone downloads it."
+          "Under the hood, Knowvia is engineered for effortless everyday use in our hub. First, our interns do not need to download an app from an app store—it opens in any phone browser and uses very little data. Second, when our tutors update a timetable, all students in that track get alerted immediately. And third, all our student records, grades, and study files remain completely safe and private within our hub."
         </div>
       </div>
     </div>
@@ -802,43 +801,43 @@ const htmlContent = `<!DOCTYPE html>
   <!-- SLIDE 6 -->
   <div class="slide-spec-card">
     <div class="slide-spec-header">
-      <span class="slide-num-title">Slide 6: Why We Win (Why Existing Tools Don't Work)</span>
+      <span class="slide-num-title">Slide 6: Why External Tools Don't Fit Our Hub</span>
       <span class="slide-time-pill">25 SECONDS</span>
     </div>
     <div class="slide-body">
       <div class="card-grid-3">
         <div class="mockup-col">
-          <div class="mockup-col-header">Informal Apps (WhatsApp)</div>
+          <div class="mockup-col-header">Informal Channels (WhatsApp)</div>
           <ul>
-            <li>Easy to use, but messy and chaotic.</li>
-            <li>No homework tracking or grading.</li>
-            <li>Constant chat noise; missed deadlines.</li>
-            <li>Files expire; virus risks.</li>
+            <li>Familiar, but chaotic and unmonitored.</li>
+            <li>No central progress tracking or grading.</li>
+            <li>Important notices buried in noise.</li>
+            <li>Files expire; malware risks on hub laptops.</li>
           </ul>
         </div>
         <div class="mockup-col">
-          <div class="mockup-col-header">School Portals (Canvas)</div>
+          <div class="mockup-col-header">Foreign Portals (Canvas)</div>
           <ul>
-            <li>Built for universities, not fast bootcamps.</li>
-            <li>Very expensive for local tech hubs.</li>
-            <li>Heavy, slow, and hard to learn.</li>
-            <li>Students rarely check them.</li>
+            <li>Expensive recurring USD subscriptions.</li>
+            <li>Rigid, bloated, and slow to onboard.</li>
+            <li>No real-time department chat.</li>
+            <li>Students rarely check or engage with them.</li>
           </ul>
         </div>
         <div class="mockup-col" style="background: #f0fdf4; border-color: #bbf7d0;">
-          <div class="mockup-col-header" style="color: #166534;">The Knowvia Sweet Spot</div>
+          <div class="mockup-col-header" style="color: #166534;">Custom-Built for Us</div>
           <ul>
             <li><strong>Zero friction:</strong> Open in any phone browser.</li>
-            <li><strong>Department Rooms:</strong> No outside noise.</li>
-            <li><strong>All-in-one:</strong> Schedules, homework, chat & safe files.</li>
-            <li><strong>Huge reach:</strong> 150+ hubs & youth programs.</li>
+            <li><strong>Department Isolation:</strong> No track noise.</li>
+            <li><strong>All-in-one:</strong> Schedules, homework, chat & files.</li>
+            <li><strong>Hub Ownership:</strong> Fully branded asset for our hub.</li>
           </ul>
         </div>
       </div>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (4:00 &ndash; 4:25)</div>
         <div class="script-text">
-          "Existing tools leave hubs trapped between two extremes. WhatsApp is easy but messy, with zero homework tracking and expiring files. University portals like Canvas are rigid, expensive, and ignored by students. Knowvia hits the sweet spot: lightweight, mobile-first, and purpose-built for the 150+ tech hubs, 3MTT centers, and youth bootcamps across the nation."
+          "Why not use off-the-shelf tools? WhatsApp is familiar, but it is unmonitored, messy, and puts hub laptops at risk. Foreign portals like Canvas charge expensive recurring USD fees, are clunky, and lack local real-time chat. Knowvia is custom-built for our exact workflow, has zero recurring foreign software fees, is fully branded for our hub, and is ready to deploy today."
         </div>
       </div>
     </div>
@@ -847,39 +846,36 @@ const htmlContent = `<!DOCTYPE html>
   <!-- SLIDE 7 -->
   <div class="slide-spec-card">
     <div class="slide-spec-header">
-      <span class="slide-num-title">Slide 7: How We Grow (B2B Hub Partnerships)</span>
+      <span class="slide-num-title">Slide 7: Business Model &mdash; Selling & Deploying to Our Hub</span>
       <span class="slide-time-pill">20 SECONDS</span>
     </div>
     <div class="slide-body">
       <div class="card-grid-3">
         <div class="mockup-col">
-          <div class="mockup-col-header">How We Make Money</div>
+          <div class="mockup-col-header">In-House Adoption Model</div>
           <ul>
-            <li><strong>Affordable Hub License:</strong> Tech hubs pay a simple annual fee per cohort (covering all departments).</li>
-            <li><strong>Custom Enterprise Tier:</strong> For large government programs (like 3MTT) needing custom branding & storage.</li>
+            <li><strong>Platform Buyout / License:</strong> Our hub acquires Knowvia as its proprietary learning and operations system for all cohorts.</li>
           </ul>
         </div>
         <div class="mockup-col">
-          <div class="mockup-col-header">Target Partners</div>
+          <div class="mockup-col-header">Maintenance & Support</div>
           <ul>
-            <li>Regional tech hubs (e.g. NASCOM, Co-Creation Hubs).</li>
-            <li>State digital economy agencies & youth academies.</li>
-            <li>University tech clubs & coding bootcamps.</li>
+            <li><strong>Annual Support Retainer:</strong> A modest service fee covering cloud database/storage, cohort onboarding, and continuous updates.</li>
           </ul>
         </div>
         <div class="mockup-col">
-          <div class="mockup-col-header">The Win-Win</div>
+          <div class="mockup-col-header">High ROI for Our Hub</div>
           <ul>
-            <li>Hubs save hundreds of hours of admin chaos.</li>
-            <li>Tutors track progress easily without spreadsheets.</li>
-            <li>Students finish their courses successfully.</li>
+            <li>Saves 3+ hours per tutor weekly.</li>
+            <li>Gives management complete oversight over tracks.</li>
+            <li>Showcase platform for sponsors (NITDA, 3MTT).</li>
           </ul>
         </div>
       </div>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (4:25 &ndash; 4:45)</div>
         <div class="script-text">
-          "Our business model is a simple B2B hub partnership. Tech hubs pay an affordable annual fee per training cohort, which covers all their departments. It is a clear win-win: hubs save hundreds of hours of admin headache, tutors stay organized, and students actually finish their courses."
+          "Our proposal to our hub is simple: an in-house platform acquisition and annual maintenance agreement. For a modest annual retainer covering hosting and cohort onboarding, our hub gains a proprietary platform that saves tutors hundreds of hours, gives administration complete oversight, and serves as a flagship showcase for external sponsors like NITDA and 3MTT."
         </div>
       </div>
     </div>
@@ -888,23 +884,23 @@ const htmlContent = `<!DOCTYPE html>
   <!-- SLIDE 8 -->
   <div class="slide-spec-card">
     <div class="slide-spec-header">
-      <span class="slide-num-title">Slide 8: Meet the Team & Try It Live</span>
+      <span class="slide-num-title">Slide 8: Ready for Our Next Cohort</span>
       <span class="slide-time-pill">15 SECONDS (LEAVE ON SCREEN DURING Q&A)</span>
     </div>
     <div class="slide-body">
       <div class="card-grid-2">
         <div class="mockup-col">
-          <div class="mockup-col-header">The Builder Team</div>
+          <div class="mockup-col-header">Our In-House Team</div>
           <ul>
-            <li><strong>Passionate Builders:</strong> Dedicated team of frontend, backend, and user researchers from the local tech ecosystem.</li>
+            <li><strong>Built by Our Hub's Talent:</strong> Dedicated frontend, backend, and product builders trained right here.</li>
             <li><strong>Tested & Proven:</strong> 88 automated tests passed &bull; Production Certified.</li>
-            <li><strong>Mission:</strong> Helping every aspiring tech talent succeed through organized, accessible learning.</li>
+            <li><strong>Ready Today:</strong> Ready to deploy immediately for our hub's upcoming cohort.</li>
           </ul>
         </div>
         <div class="mockup-col" style="text-align: center; background: #f8fafc;">
-          <div class="mockup-col-header">Try Knowvia Right Now</div>
+          <div class="mockup-col-header">Test Knowvia Right Now</div>
           <p style="font-size: 7.5pt; color: #334155; margin-top: 4px;">
-            Point your phone camera to open the live app:
+            Point your phone camera to test live:
           </p>
           <div style="display: inline-block; padding: 4px; background: #ffffff; border: 1.5px solid #4f46e5; border-radius: 4px; margin: 4px 0;">
             <span style="font-size: 7pt; font-weight: bold; color: #4f46e5;">[ QR CODE: SCAN TO TRY LIVE PWA ]</span>
@@ -915,7 +911,7 @@ const htmlContent = `<!DOCTYPE html>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (4:45 &ndash; 5:00)</div>
         <div class="script-text">
-          "Our team has built Knowvia from real hub feedback into a certified, production-ready platform with 88 automated quality checks. You can point your phone camera at the QR code right now to test Knowvia live. Thank you, and we welcome your questions!"
+          "We are proud to present a platform built by our hub's own talent, tested with 88 automated quality checks, and ready to elevate our internship program. Scan the QR code to try Knowvia on your phone right now. Thank you, and we welcome your questions!"
         </div>
       </div>
     </div>
