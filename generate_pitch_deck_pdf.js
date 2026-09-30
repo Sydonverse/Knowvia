@@ -809,38 +809,48 @@ const htmlContent = `<!DOCTYPE html>
       <span class="slide-time-pill">25 SECONDS</span>
     </div>
     <div class="slide-body">
-      <div class="card-grid-3">
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
         <div class="mockup-col">
-          <div class="mockup-col-header">Current Makeshifts (WhatsApp & Telegram)</div>
+          <div class="mockup-col-header">1. Makeshifts</div>
+          <div style="font-weight: 700; font-size: 7.5pt; margin-bottom: 2px;">WhatsApp & Telegram</div>
           <ul>
-            <li>Familiar, but noisy and chaotic.</li>
-            <li>No homework tracking or grading.</li>
-            <li>Important notices buried in noise.</li>
-            <li>Files expire; malware risks on hub laptops.</li>
+            <li>Noisy & chaotic group chat.</li>
+            <li>No homework tracking.</li>
+            <li>Links expire; malware risks.</li>
           </ul>
         </div>
         <div class="mockup-col">
-          <div class="mockup-col-header">Existing Alternatives (Moodle & Frappe)</div>
+          <div class="mockup-col-header">2. Alternatives</div>
+          <div style="font-weight: 700; font-size: 7.5pt; margin-bottom: 2px;">Moodle & Frappe</div>
           <ul>
-            <li><strong>Heavy setup & upkeep:</strong> Costly server hosting and ongoing IT headaches.</li>
-            <li><strong>No real-time chat:</strong> Interns still get dumped back onto WhatsApp.</li>
-            <li><strong>Clunky mobile UX:</strong> Complex navigation; learners abandon them.</li>
+            <li>Costly server upkeep.</li>
+            <li><strong>No live department chat.</strong></li>
+            <li>Clunky; abandoned on mobile.</li>
+          </ul>
+        </div>
+        <div class="mockup-col" style="background: #fffbeb; border-color: #fde68a;">
+          <div class="mockup-col-header" style="color: #92400e;">3. Operational Gap</div>
+          <div style="font-weight: 700; font-size: 7.5pt; color: #78350f; margin-bottom: 2px;">The Disconnect</div>
+          <ul>
+            <li>Chat has zero tracking.</li>
+            <li>Portals lack live chat.</li>
+            <li>Interns split across tools.</li>
           </ul>
         </div>
         <div class="mockup-col" style="background: #f0fdf4; border-color: #bbf7d0;">
-          <div class="mockup-col-header" style="color: #166534;">The Operational Gap (Knowvia)</div>
+          <div class="mockup-col-header" style="color: #166534;">4. Hub Advantage</div>
+          <div style="font-weight: 700; font-size: 7.5pt; color: #14532d; margin-bottom: 2px;">Knowvia</div>
           <ul>
-            <li><strong>Zero server bloat:</strong> Lightweight phone web app.</li>
-            <li><strong>Chat + Classrooms combined:</strong> Unified in one place without WhatsApp.</li>
-            <li><strong>Department isolation:</strong> Pure focus for each track.</li>
-            <li><strong>100% Hub Ownership:</strong> Branded & maintained for us.</li>
+            <li>Lightweight phone web app.</li>
+            <li>Chat + Classrooms unified.</li>
+            <li>100% Hub owned & safe.</li>
           </ul>
         </div>
       </div>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (4:00 &ndash; 4:25)</div>
         <div class="script-text">
-          "When we analyze the market, our hub's options are deeply flawed. Current makeshifts like WhatsApp and Telegram are too chaotic and lack grading. Existing open-source alternatives like Moodle and Frappe require heavy server bills and lack live chat—leaving interns right back on WhatsApp. Knowvia bridges this operational gap: lightweight, real-time chat plus classroom tracking in one platform, completely owned by our hub."
+          "When we analyze the market, our hub's options are deeply flawed. Current makeshifts like WhatsApp are too chaotic and lack grading. Existing open-source alternatives like Moodle require heavy server bills and lack live chat. This leaves a severe operational gap—forcing trainees into fragmented workflows. Knowvia captures this in-house advantage: unifying chat and classrooms into a lightweight platform built solely for our hub."
         </div>
       </div>
     </div>

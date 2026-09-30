@@ -286,6 +286,12 @@ const htmlContent = `<!DOCTYPE html>
       gap: 6mm;
     }
 
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4.5mm;
+    }
+
     /* CARD STYLING */
     .mini-card {
       background: #ffffff;
@@ -830,7 +836,7 @@ const htmlContent = `<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- SLIDE 7: MARKET ANALYSIS (CURRENT MAKESHIFTS, EXISTING ALTERNATIVES & THE OPERATIONAL GAP) -->
+  <!-- SLIDE 7: MARKET ANALYSIS (4 PILLARS) -->
   <div class="slide">
     <div class="top-accent-pill"></div>
     <div class="top-accent-dot"></div>
@@ -846,38 +852,48 @@ const htmlContent = `<!DOCTYPE html>
         <div class="title-dot"></div>
         <div class="title-dot"></div>
       </div>
-      <div class="slide-subtitle">Why current makeshifts and existing alternatives leave a critical operational gap in our hub</div>
+      <div class="slide-subtitle">Examining current makeshifts, open-source alternatives, and our hub's in-house advantage</div>
     </div>
 
     <div class="slide-body">
-      <div class="grid-3">
-        <div class="mini-card">
+      <div class="grid-4">
+        <div class="mini-card" style="padding: 5.5mm 4.5mm;">
           <div class="mini-card-tag" style="color: #64748b;">CURRENT MAKESHIFTS</div>
-          <div class="mini-card-title">WhatsApp & Telegram</div>
-          <div class="mini-card-text">
+          <div class="mini-card-title" style="font-size: 12.5pt;">WhatsApp & Telegram</div>
+          <div class="mini-card-text" style="font-size: 9pt;">
             <div style="margin-bottom: 2mm; color: #ef4444; font-weight: 700;">&times; Cluttered group chat noise</div>
             <div style="margin-bottom: 2mm; color: #ef4444; font-weight: 700;">&times; Zero homework tracking</div>
-            <div style="color: #ef4444; font-weight: 700;">&times; Links expire & laptop virus risks</div>
+            <div style="color: #ef4444; font-weight: 700;">&times; Links expire & virus risks</div>
           </div>
         </div>
 
-        <div class="mini-card">
+        <div class="mini-card" style="padding: 5.5mm 4.5mm;">
           <div class="mini-card-tag" style="color: #dc2626;">EXISTING ALTERNATIVES</div>
-          <div class="mini-card-title">Moodle & Frappe</div>
-          <div class="mini-card-text">
+          <div class="mini-card-title" style="font-size: 12.5pt;">Moodle & Frappe</div>
+          <div class="mini-card-text" style="font-size: 9pt;">
             <div style="margin-bottom: 2mm; color: #ef4444; font-weight: 700;">&times; Costly ongoing server hosting</div>
             <div style="margin-bottom: 2mm; color: #ef4444; font-weight: 700;">&times; No live department chat</div>
             <div style="color: #ef4444; font-weight: 700;">&times; Clunky; abandoned on mobile</div>
           </div>
         </div>
 
-        <div class="mini-card" style="background: #f0fdf4; border: 1.5px solid #86efac;">
-          <div class="mini-card-tag" style="color: #16a34a;">THE OPERATIONAL GAP</div>
-          <div class="mini-card-title" style="color: #14532d;">Knowvia (The Solution)</div>
-          <div class="mini-card-text">
+        <div class="mini-card" style="padding: 5.5mm 4.5mm; background: #fffbeb; border: 1.5px solid #fde68a;">
+          <div class="mini-card-tag" style="color: #b45309;">THE OPERATIONAL GAP</div>
+          <div class="mini-card-title" style="font-size: 12.5pt; color: #78350f;">The Disconnect</div>
+          <div class="mini-card-text" style="font-size: 9pt;">
+            <div style="margin-bottom: 2mm; color: #b45309; font-weight: 700;">! Chat lacks academic tracking</div>
+            <div style="margin-bottom: 2mm; color: #b45309; font-weight: 700;">! Portals lack live messaging</div>
+            <div style="color: #b45309; font-weight: 700;">! Interns split across broken tools</div>
+          </div>
+        </div>
+
+        <div class="mini-card" style="padding: 5.5mm 4.5mm; background: #f0fdf4; border: 1.5px solid #86efac;">
+          <div class="mini-card-tag" style="color: #16a34a;">THE HUB ADVANTAGE</div>
+          <div class="mini-card-title" style="font-size: 13pt; color: #14532d;">Knowvia</div>
+          <div class="mini-card-text" style="font-size: 9pt;">
             <div style="margin-bottom: 2mm; color: #15803d; font-weight: 700;">&#10003; Lightweight phone web app</div>
-            <div style="margin-bottom: 2mm; color: #15803d; font-weight: 700;">&#10003; Chat + Classrooms combined</div>
-            <div style="color: #15803d; font-weight: 700;">&#10003; 100% Hub owned & maintained</div>
+            <div style="margin-bottom: 2mm; color: #15803d; font-weight: 700;">&#10003; Chat + Classrooms unified</div>
+            <div style="color: #15803d; font-weight: 700;">&#10003; 100% Hub owned & managed</div>
           </div>
         </div>
       </div>
