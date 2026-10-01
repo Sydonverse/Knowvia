@@ -809,48 +809,46 @@ const htmlContent = `<!DOCTYPE html>
       <span class="slide-time-pill">25 SECONDS</span>
     </div>
     <div class="slide-body">
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+      <div style="display: grid; grid-template-columns: 0.9fr 0.9fr 1.1fr 1.1fr; gap: 6px;">
         <div class="mockup-col">
           <div class="mockup-col-header">1. Makeshifts</div>
-          <div style="font-weight: 700; font-size: 7.5pt; margin-bottom: 2px;">WhatsApp & Telegram</div>
+          <div style="font-weight: 700; font-size: 7.5pt; margin-bottom: 2px;">Informal Tools</div>
           <ul>
-            <li>Noisy & chaotic group chat.</li>
-            <li>No homework tracking.</li>
-            <li>Links expire; malware risks.</li>
+            <li>WhatsApp</li>
+            <li>Telegram</li>
           </ul>
         </div>
         <div class="mockup-col">
           <div class="mockup-col-header">2. Alternatives</div>
-          <div style="font-weight: 700; font-size: 7.5pt; margin-bottom: 2px;">Moodle & Frappe</div>
+          <div style="font-weight: 700; font-size: 7.5pt; margin-bottom: 2px;">Open-Source LMS</div>
           <ul>
-            <li>Costly server upkeep.</li>
-            <li><strong>No live department chat.</strong></li>
-            <li>Clunky; abandoned on mobile.</li>
+            <li>Moodle</li>
+            <li>Frappe LMS</li>
           </ul>
         </div>
         <div class="mockup-col" style="background: #fffbeb; border-color: #fde68a;">
           <div class="mockup-col-header" style="color: #92400e;">3. Operational Gap</div>
           <div style="font-weight: 700; font-size: 7.5pt; color: #78350f; margin-bottom: 2px;">The Disconnect</div>
           <ul>
-            <li>Chat has zero tracking.</li>
-            <li>Portals lack live chat.</li>
-            <li>Interns split across tools.</li>
+            <li>Cluttered chat noise & zero tracking.</li>
+            <li>Costly server hosting & rigid portals.</li>
+            <li>Neither hits the sweet spot for our hub.</li>
           </ul>
         </div>
         <div class="mockup-col" style="background: #f0fdf4; border-color: #bbf7d0;">
           <div class="mockup-col-header" style="color: #166534;">4. Hub Advantage</div>
           <div style="font-weight: 700; font-size: 7.5pt; color: #14532d; margin-bottom: 2px;">Knowvia</div>
           <ul>
-            <li>Lightweight phone web app.</li>
-            <li>Chat + Classrooms unified.</li>
-            <li>100% Hub owned & safe.</li>
+            <li>Installable mobile-first PWA.</li>
+            <li>Everything in one place: chat & tasks.</li>
+            <li>Purpose-built for our infrastructure.</li>
           </ul>
         </div>
       </div>
       <div class="callout callout-script">
         <div class="script-title">Speaker Script (4:00 &ndash; 4:25)</div>
         <div class="script-text">
-          "When we analyze the market, our hub's options are deeply flawed. Current makeshifts like WhatsApp are too chaotic and lack grading. Existing open-source alternatives like Moodle require heavy server bills and lack live chat. This leaves a severe operational gap—forcing trainees into fragmented workflows. Knowvia captures this in-house advantage: unifying chat and classrooms into a lightweight platform built solely for our hub."
+          "When we analyze the market, our hub faces two extremes: informal makeshifts like WhatsApp and Telegram that bring endless chat noise without homework tracking, and open-source portals like Moodle and Frappe that bring heavy server bills and desktop-first rigidity. Neither hits the sweet spot. Knowvia captures this operational gap as an in-house advantage: an installable mobile PWA with everything in one place, purpose-built to deploy smoothly around our hub's existing infrastructure."
         </div>
       </div>
     </div>
