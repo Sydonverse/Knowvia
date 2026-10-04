@@ -70,12 +70,52 @@ export interface DispatchEmailPayload {
 }
 
 let cachedBrevoSender: { name: string; email: string } | null = null;
+let isDiscoveringSender = false;
+
+/**
+ * Initiates non-blocking background discovery of active verified senders in Brevo.
+ */
+const triggerAsyncSenderDiscovery = (apiKey: string, fallbackEmail: string, fallbackName: string) => {
+  if (isDiscoveringSender || cachedBrevoSender) return;
+  isDiscoveringSender = true;
+
+  fetch('https://api.brevo.com/v3/senders', {
+    method: 'GET',
+    headers: {
+      'api-key': apiKey,
+      'Accept': 'application/json',
+    },
+    signal: AbortSignal.timeout(6000),
+  })
+    .then(async (res) => {
+      if (res.ok) {
+        const data: any = await res.json();
+        const preferred = data.senders?.find(
+          (s: any) => s.active !== false && s.email.toLowerCase() === fallbackEmail.toLowerCase()
+        );
+        const activeSender = preferred || data.senders?.find((s: any) => s.active !== false);
+        if (activeSender && activeSender.email) {
+          cachedBrevoSender = {
+            name: fallbackName,
+            email: activeSender.email,
+          };
+          console.log(`[Brevo] Discovered verified sender: ${activeSender.email}`);
+        }
+      }
+    })
+    .catch((err) => {
+      console.warn('[Brevo] Sender discovery warning:', err.message);
+    })
+    .finally(() => {
+      isDiscoveringSender = false;
+    });
+};
 
 /**
  * Resolves the authenticated sender email for Brevo:
  * 1. Uses BREVO_SENDER_EMAIL if configured in environment variables.
- * 2. Auto-discovers the verified sender from Brevo GET /v3/senders.
- * 3. Falls back to SMTP_USER or default email.
+ * 2. Uses cached verified sender if available.
+ * 3. Fast-tracks dispatch using fallbackEmail immediately, triggering background discovery.
  */
 export const getBrevoSender = async (
   apiKey: string,
@@ -93,46 +133,16 @@ export const getBrevoSender = async (
     return cachedBrevoSender;
   }
 
-  try {
-    const res = await fetch('https://api.brevo.com/v3/senders', {
-      method: 'GET',
-      headers: {
-        'api-key': apiKey,
-        'Accept': 'application/json',
-      },
-      signal: AbortSignal.timeout(6000),
-    });
-
-    if (res.ok) {
-      const data: any = await res.json();
-      // Prefer fallbackEmail (e.g. knowvia.testing@gmail.com) if present in verified senders, otherwise use first active verified sender
-      const preferred = data.senders?.find(
-        (s: any) => s.active !== false && s.email.toLowerCase() === fallbackEmail.toLowerCase()
-      );
-      const activeSender = preferred || data.senders?.find((s: any) => s.active !== false);
-      if (activeSender && activeSender.email) {
-        cachedBrevoSender = {
-          name: fallbackName,
-          email: activeSender.email,
-        };
-        console.log(`[Brevo] Using verified sender: ${activeSender.email}`);
-        return cachedBrevoSender;
-      }
-    } else {
-      const errText = await res.text();
-      console.warn(`[Brevo] Senders check returned ${res.status}: ${errText}`);
-    }
-  } catch (err: any) {
-    console.warn('[Brevo] Senders query error:', err.message);
-  }
+  // Fast-track: trigger background discovery and immediately use fallbackEmail so the initial email is not delayed
+  triggerAsyncSenderDiscovery(apiKey, fallbackEmail, fallbackName);
 
   return { name: fallbackName, email: fallbackEmail };
 };
 
 /**
  * Dispatches an email using the optimal available transport:
- * 1. Brevo REST API (HTTPS port 443 - works on Render free tier)
- * 2. Resend REST API (HTTPS port 443 - works on Render free tier)
+ * 1. Brevo REST API (HTTPS port 443 with up to 3 automatic retries and anti-spam deliverability headers)
+ * 2. Resend REST API (HTTPS port 443 fallback)
  * 3. Nodemailer SMTP (Default / Local fallback)
  */
 export const dispatchEmail = async (
@@ -140,79 +150,122 @@ export const dispatchEmail = async (
 ): Promise<{ success: boolean; method: string; id?: string }> => {
   const brevoApiKey = process.env.BREVO_API_KEY;
   const resendApiKey = process.env.RESEND_API_KEY;
-  const senderEmail = process.env.SMTP_USER || 'knowvia.testing@gmail.com';
-  const senderName = 'Knowvia';
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.SMTP_USER || 'knowvia.testing@gmail.com';
+  const senderName = process.env.BREVO_SENDER_NAME || 'Knowvia';
 
-  // 1. Check Brevo REST API (HTTPS Port 443)
+  let lastError: Error | null = null;
+
+  // 1. Check Brevo REST API (HTTPS Port 443) with auto-retry
   if (brevoApiKey) {
     const sender = await getBrevoSender(brevoApiKey, senderEmail, senderName);
 
-    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': brevoApiKey,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        sender: { name: sender.name, email: sender.email },
-        to: [{ email: payload.to, name: payload.recipientName }],
-        subject: payload.subject,
-        htmlContent: payload.htmlContent,
-        textContent: payload.textContent,
-      }),
-      signal: AbortSignal.timeout(10000),
-    });
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'api-key': brevoApiKey,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            sender: { name: sender.name, email: sender.email },
+            to: [{ email: payload.to, name: payload.recipientName }],
+            replyTo: { name: sender.name, email: sender.email },
+            subject: payload.subject,
+            htmlContent: payload.htmlContent,
+            textContent: payload.textContent,
+            tags: ['onboarding', 'account-setup'],
+            headers: {
+              'X-Auto-Response-Suppress': 'All',
+              'Auto-Submitted': 'auto-generated',
+            },
+          }),
+          signal: AbortSignal.timeout(10000),
+        });
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`[Brevo] Email dispatch rejected (${res.status}):`, errorText);
-      throw new Error(`Brevo API error (${res.status}): ${errorText}`);
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error(`[Brevo] Email dispatch rejected (attempt ${attempt}/3, status ${res.status}):`, errorText);
+          // If permanent client error 4xx (except rate limit 429), fail fast to next transport
+          if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+            throw new Error(`Brevo API error (${res.status}): ${errorText}`);
+          }
+          throw new Error(`Brevo API error (${res.status}): ${errorText}`);
+        }
+
+        const data: any = await res.json();
+        return { success: true, method: 'brevo-https', id: data.messageId };
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`[Brevo] Attempt ${attempt}/3 failed:`, err.message || err);
+        if (attempt < 3) {
+          // Wait 1000ms before retry 2, 2000ms before retry 3
+          await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+        }
+      }
     }
-    const data: any = await res.json();
-    return { success: true, method: 'brevo-https', id: data.messageId };
+    console.error('[Brevo] All 3 dispatch attempts failed. Attempting fallback transport if available...');
   }
 
-  // 2. Check Resend REST API (HTTPS Port 443)
+  // 2. Check Resend REST API (HTTPS Port 443) as fallback
   if (resendApiKey) {
-    const resendFrom =
-      process.env.RESEND_FROM ||
-      (senderEmail.includes('@gmail.com') ? 'Knowvia <onboarding@resend.dev>' : `${senderName} <${senderEmail}>`);
+    try {
+      const resendFrom =
+        process.env.RESEND_FROM ||
+        (senderEmail.includes('@gmail.com') ? 'Knowvia <onboarding@resend.dev>' : `${senderName} <${senderEmail}>`);
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: resendFrom,
-        to: [payload.to],
-        subject: payload.subject,
-        html: payload.htmlContent,
-        text: payload.textContent,
-      }),
-      signal: AbortSignal.timeout(10000),
-    });
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: resendFrom,
+          to: [payload.to],
+          subject: payload.subject,
+          html: payload.htmlContent,
+          text: payload.textContent,
+          headers: {
+            'X-Auto-Response-Suppress': 'All',
+            'Auto-Submitted': 'auto-generated',
+          },
+        }),
+        signal: AbortSignal.timeout(10000),
+      });
 
-    if (!res.ok) {
+      if (res.ok) {
+        const data: any = await res.json();
+        return { success: true, method: 'resend-https', id: data.id };
+      }
       const errorText = await res.text();
-      throw new Error(`Resend API error (${res.status}): ${errorText}`);
+      console.error(`[Resend] Fallback dispatch failed (${res.status}):`, errorText);
+      lastError = new Error(`Resend API error (${res.status}): ${errorText}`);
+    } catch (err: any) {
+      lastError = err;
+      console.warn('[Resend] Fallback error:', err.message);
     }
-    const data: any = await res.json();
-    return { success: true, method: 'resend-https', id: data.id };
   }
 
   // 3. Nodemailer SMTP Fallback
-  const info = await emailTransporter.sendMail({
-    from: `"${senderName}" <${senderEmail}>`,
-    to: payload.to,
-    subject: payload.subject,
-    text: payload.textContent,
-    html: payload.htmlContent,
-  });
+  if (!brevoApiKey && !resendApiKey) {
+    const info = await emailTransporter.sendMail({
+      from: `"${senderName}" <${senderEmail}>`,
+      to: payload.to,
+      subject: payload.subject,
+      text: payload.textContent,
+      html: payload.htmlContent,
+    });
 
-  return { success: true, method: 'smtp', id: info.messageId };
+    return { success: true, method: 'smtp', id: info.messageId };
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
+
+  return { success: false, method: 'none' };
 };
 
 /**

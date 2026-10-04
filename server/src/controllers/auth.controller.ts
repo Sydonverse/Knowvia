@@ -290,9 +290,9 @@ export const completeOnboarding = async (req: Request, res: Response): Promise<v
         },
       });
 
-      // 2. Invalidate token immediately
-      await tx.onboardingInvitation.update({
-        where: { id: invitation.id },
+      // 2. Invalidate all onboarding invitations for this user atomically
+      await tx.onboardingInvitation.updateMany({
+        where: { userId: invitation.userId, usedAt: null },
         data: {
           usedAt: new Date(),
         },
