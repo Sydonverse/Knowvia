@@ -1323,6 +1323,8 @@
   flex-direction: column;
   box-shadow: var(--shadow-xs);
   transition: var(--transition-fast);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .material-card:hover {
@@ -1366,6 +1368,7 @@
 .material-card-content {
   flex: 1;
   margin-bottom: 16px;
+  min-width: 0;
 }
 
 .material-card-title {
@@ -1384,8 +1387,17 @@
 }
 
 .material-original-filename {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   color: var(--text-muted);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.material-original-filename span {
+  flex-shrink: 0;
 }
 
 .material-original-filename code {
@@ -1393,6 +1405,13 @@
   padding: 2px 6px;
   border-radius: var(--radius-xs);
   font-family: var(--font-mono);
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
 }
 
 .material-card-footer {
@@ -3208,6 +3227,13 @@
 
 .btn-link-sm:hover {
   text-decoration: underline;
+}
+
+.btn-link-sm span {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ─── AUTH PAGE ───────────────────────────────────────────── */

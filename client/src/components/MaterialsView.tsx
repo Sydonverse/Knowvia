@@ -139,9 +139,9 @@ export const MaterialsView: React.FC<MaterialsViewProps> = ({
                 {item.description && (
                   <p className="material-card-desc">{item.description}</p>
                 )}
-                <div className="material-original-filename">
+                <div className="material-original-filename" title={`Original file: ${item.fileName}`}>
                   <span>File: </span>
-                  <code>{item.fileName}</code>
+                  <code title={item.fileName}>{item.fileName}</code>
                 </div>
               </div>
 
