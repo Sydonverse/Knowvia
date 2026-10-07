@@ -166,7 +166,7 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
                       role={ann.author?.role}
                       size="md"
                     />
-                    <div>
+                    <div className="ann-author-info">
                       <div className="ann-author-name">
                         {formatDisplayName(ann.author?.firstName, ann.author?.lastName)}
                       </div>
@@ -179,37 +179,43 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
                   </div>
 
                   <div className="ann-meta-actions">
-                    <span className={`badge-priority badge-${ann.priority.toLowerCase()}`}>
-                      {ann.priority === 'URGENT' && <AlertTriangle size={12} />}
-                      <span>{ann.priority}</span>
-                    </span>
+                    <div className="ann-meta-tags">
+                      <span className={`badge-priority badge-${ann.priority.toLowerCase()}`}>
+                        {ann.priority === 'URGENT' && <AlertTriangle size={12} />}
+                        <span>{ann.priority}</span>
+                      </span>
 
-                    <span className="ann-time-stamp">
-                      <Clock size={12} />
-                      <span>{new Date(ann.createdAt).toLocaleDateString()}</span>
-                    </span>
+                      <span className="ann-time-stamp">
+                        <Clock size={12} />
+                        <span>{new Date(ann.createdAt).toLocaleDateString()}</span>
+                      </span>
+                    </div>
 
-                    {canTogglePin && (
-                      <button
-                        type="button"
-                        className={`btn-icon-pin ${ann.isPinned ? 'is-pinned' : ''}`}
-                        onClick={() => onTogglePinAnnouncement!(ann.id)}
-                        title={ann.isPinned ? 'Unpin announcement' : 'Pin announcement to top'}
-                        aria-label={ann.isPinned ? 'Unpin announcement' : 'Pin announcement to top'}
-                      >
-                        {ann.isPinned ? <PinOff size={13} /> : <Pin size={13} />}
-                        <span>{ann.isPinned ? 'Unpin' : 'Pin'}</span>
-                      </button>
-                    )}
+                    <div className="ann-action-btns">
+                      {canTogglePin && (
+                        <button
+                          type="button"
+                          className={`btn-icon-pin ${ann.isPinned ? 'is-pinned' : ''}`}
+                          onClick={() => onTogglePinAnnouncement!(ann.id)}
+                          title={ann.isPinned ? 'Unpin announcement' : 'Pin announcement to top'}
+                          aria-label={ann.isPinned ? 'Unpin announcement' : 'Pin announcement to top'}
+                        >
+                          {ann.isPinned ? <PinOff size={13} /> : <Pin size={13} />}
+                          <span>{ann.isPinned ? 'Unpin' : 'Pin'}</span>
+                        </button>
+                      )}
 
-                    <button
-                      type="button"
-                      className="btn-icon-danger-sm"
-                      onClick={() => onDeleteAnnouncement(ann.id)}
-                      title="Delete Announcement"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                      {isTutorOrAdmin && onDeleteAnnouncement && (
+                        <button
+                          type="button"
+                          className="btn-icon-danger-sm"
+                          onClick={() => onDeleteAnnouncement(ann.id)}
+                          title="Delete Announcement"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 

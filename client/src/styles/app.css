@@ -1501,12 +1501,14 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 4px;
+  gap: 16px;
 }
 
 .view-header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .view-pretitle {
@@ -2727,8 +2729,9 @@
 .btn-icon-pin {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 4px 8px;
+  padding: 4px 9px;
   border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 600;
@@ -2737,6 +2740,8 @@
   color: var(--text-secondary);
   cursor: pointer;
   transition: var(--transition-fast);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .btn-icon-pin:hover {
@@ -2775,12 +2780,20 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  gap: 12px;
 }
 
 .ann-author-box {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+}
+
+.ann-author-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .ann-avatar-img,
@@ -2788,6 +2801,7 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-full);
+  flex-shrink: 0;
 }
 
 .ann-avatar-fallback {
@@ -2804,17 +2818,36 @@
   font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ann-author-role {
   font-size: 11px;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ann-meta-actions {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
+}
+
+.ann-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ann-action-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .badge-priority {
@@ -4129,6 +4162,100 @@
     font-size: 12px;
     padding: 5px 10px;
   }
+
+  /* View Header & Action Buttons on Mobile */
+  .view-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+
+  .view-title {
+    font-size: 20px;
+  }
+
+  .view-subtitle {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .view-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .view-header-actions .btn-primary,
+  .view-header-actions .btn-secondary,
+  .view-header > .btn-primary {
+    white-space: nowrap;
+  }
+
+  /* Announcements Feed Cards on Mobile */
+  .announcement-feed-card {
+    padding: 16px;
+  }
+
+  .announcement-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .ann-author-box {
+    width: 100%;
+  }
+
+  .ann-author-info {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ann-meta-actions {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .ann-meta-tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .ann-action-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .btn-icon-pin {
+    padding: 5px 10px;
+    font-size: 11px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-icon-danger-sm {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 480px) {
@@ -4848,6 +4975,47 @@
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(217, 119, 6, 0.10) 50%, rgba(180, 83, 9, 0.14) 100%);
   border-color: rgba(245, 158, 11, 0.3);
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* Dark mode styling for Pin actions & badge strip */
+[data-theme="dark"] .btn-icon-pin {
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btn-icon-pin:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
+[data-theme="dark"] .btn-icon-pin.is-pinned {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="dark"] .btn-icon-pin.is-pinned:hover {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fde68a;
+}
+
+[data-theme="dark"] .pinned-badge-strip {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .btn-unpin-badge {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fde68a;
+}
+
+[data-theme="dark"] .btn-unpin-badge:hover {
+  background: rgba(245, 158, 11, 0.3);
+  color: #fff;
 }
 
 
