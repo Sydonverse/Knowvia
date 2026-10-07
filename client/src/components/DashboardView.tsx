@@ -28,6 +28,7 @@ import {
 } from '../types';
 import { getFileUrl } from '../utils/file';
 import { ActiveTab } from './Sidebar';
+import { DepartmentIconBadge } from './DepartmentIconBadge';
 
 interface DashboardViewProps {
   user: User | null;
@@ -76,14 +77,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="dashboard-content">
       {/* Department Hero Banner */}
-      <div
-        className="hero-banner"
-        style={{
-          borderLeft: `4px solid ${activeDept.colorHex || '#4f46e5'}`,
-        }}
-      >
+      <div className={`hero-banner ${isTutorOrAdmin ? 'hero-banner-tutor' : 'hero-banner-student'}`}>
         <div className="hero-content">
-          <div className="hero-badge" style={{ color: activeDept.colorHex || '#4f46e5' }}>
+          <div className="hero-badge">
             <Sparkles size={14} />
             <span>{isTutorOrAdmin ? 'Tutor Hub Workspace' : 'Student Knowledge Space'}</span>
           </div>
@@ -128,6 +124,48 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             )}
           </div>
         </div>
+
+        {/* Student Knowledge Space: full visual treatment with abstract flowing vector mesh & 3D department badge */}
+        {!isTutorOrAdmin && (
+          <div className="hero-graphic-col">
+            <div className="hero-mesh-backdrop">
+              <svg
+                viewBox="0 0 280 180"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="hero-flowing-svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M10 130C60 60 120 180 180 90C220 30 260 80 270 50"
+                  stroke="url(#flowGradient1)"
+                  strokeWidth="28"
+                  strokeLinecap="round"
+                  opacity="0.3"
+                />
+                <path
+                  d="M40 160C100 110 150 190 210 110C240 70 270 120 280 90"
+                  stroke="url(#flowGradient2)"
+                  strokeWidth="18"
+                  strokeLinecap="round"
+                  opacity="0.35"
+                />
+                <defs>
+                  <linearGradient id="flowGradient1" x1="0" y1="0" x2="280" y2="180" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#0ea5e9" />
+                    <stop offset="0.5" stopColor="#3b82f6" />
+                    <stop offset="1" stopColor="#6366f1" />
+                  </linearGradient>
+                  <linearGradient id="flowGradient2" x1="0" y1="0" x2="280" y2="180" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#38bdf8" />
+                    <stop offset="1" stopColor="#818cf8" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <DepartmentIconBadge department={activeDept} size="xl" showLabel />
+          </div>
+        )}
       </div>
 
       {/* Main Feature Layout */}
@@ -428,7 +466,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="dashboard-col-right">
           {/* Quick Stats Grid */}
           <div className="stat-cards-vertical">
-            <div className="stat-card" onClick={() => onNavigate('materials')}>
+            <div className="stat-card stat-card-materials" onClick={() => onNavigate('materials')}>
               <div className="stat-icon-wrapper stat-icon-sky">
                 <BookOpen size={20} />
               </div>
@@ -438,7 +476,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             </div>
 
-            <div className="stat-card" onClick={() => onNavigate('assignments')}>
+            <div className="stat-card stat-card-assignments" onClick={() => onNavigate('assignments')}>
               <div className="stat-icon-wrapper stat-icon-emerald">
                 <ClipboardCheck size={20} />
               </div>
@@ -450,7 +488,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             </div>
 
-            <div className="stat-card" onClick={() => onNavigate('schedule')}>
+            <div className="stat-card stat-card-sessions" onClick={() => onNavigate('schedule')}>
               <div className="stat-icon-wrapper stat-icon-indigo">
                 <Calendar size={20} />
               </div>

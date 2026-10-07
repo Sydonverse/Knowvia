@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { BellRing } from 'lucide-react';
 import './styles/design-tokens.css';
 import './styles/app.css';
 
@@ -832,14 +833,16 @@ export const App: React.FC = () => {
           {user && showPushPromptBanner && !pushEnabled && isPushSupported() && (
             <div className="push-prompt-banner">
               <div className="push-prompt-banner-content">
-                <span className="push-prompt-icon">🔔</span>
+                <div className="push-bell-badge">
+                  <BellRing size={20} className="push-bell-icon" />
+                </div>
                 <div>
                   <strong>Enable Mobile & Desktop Push Notifications</strong>
                   <p>Receive instant class reminders, announcements, and assignment updates even when Knowvia is closed.</p>
                 </div>
               </div>
               <div className="push-prompt-actions">
-                <button className="btn-primary btn-sm" onClick={handleEnablePush}>
+                <button className="btn-push-alert" onClick={handleEnablePush}>
                   Enable Alerts
                 </button>
                 <button

@@ -12,6 +12,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { DepartmentMemberContext, User } from '../types';
+import { DepartmentIconBadge } from './DepartmentIconBadge';
 
 export type ActiveTab =
   | 'dashboard'
@@ -129,26 +130,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ? 'Department Tutor'
       : 'Intern / Student';
 
-  const deptColor = activeDept?.colorHex || '#6366f1';
-
   return (
     <aside className="sidebar-container">
       {/* Workspace Banner */}
-      <div
-        className="sidebar-dept-card"
-        style={{
-          borderColor: `${deptColor}30`,
-          background: `${deptColor}08`,
-        }}
-      >
+      <div className="sidebar-dept-card">
         <div className="dept-card-top">
           <div className="status-online-dot"></div>
           <span className="dept-space-label">
             {isAdmin && !activeDept ? 'ORGANIZATION SCOPE' : 'DEPARTMENT WORKSPACE'}
           </span>
         </div>
-        <div className="dept-card-title">
-          {isAdmin && !activeDept ? 'Knowvia Platform' : activeDept?.name || 'Department'}
+        <div className="sidebar-dept-identity-row">
+          {activeDept && (
+            <DepartmentIconBadge department={activeDept} size="sm" />
+          )}
+          <div className="dept-card-title">
+            {isAdmin && !activeDept ? 'Knowvia Platform' : activeDept?.name || 'Department'}
+          </div>
         </div>
         <div className="dept-badge-role">
           {currentUser?.role === 'ADMIN' ? (
@@ -182,27 +180,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               key={item.id}
               className={`nav-link ${isActive ? 'active' : ''}`}
               onClick={() => onSelectTab(item.id)}
-              style={
-                isActive
-                  ? {
-                      borderColor: deptColor,
-                      background: `${deptColor}10`,
-                      color: 'var(--text-primary)',
-                    }
-                  : {}
-              }
             >
-              <div
-                className="nav-icon-box"
-                style={
-                  isActive
-                    ? {
-                        background: `${deptColor}20`,
-                        color: deptColor,
-                      }
-                    : {}
-                }
-              >
+              <div className="nav-icon-box">
                 <Icon size={18} />
               </div>
               <div className="nav-text-col">
@@ -210,10 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="nav-subtext">{item.description}</span>
               </div>
               {isActive && (
-                <div
-                  className="active-indicator-bar"
-                  style={{ background: deptColor }}
-                />
+                <div className="active-indicator-bar" />
               )}
             </button>
           );
