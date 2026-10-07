@@ -22,6 +22,7 @@ import { isPushSupported, subscribeUserToPush } from './utils/push.utils';
 
 import { Navbar } from './components/Navbar';
 import { Sidebar, ActiveTab } from './components/Sidebar';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { DashboardView } from './components/DashboardView';
 import { ScheduleView } from './components/ScheduleView';
 import { MaterialsView } from './components/MaterialsView';
@@ -1018,6 +1019,17 @@ export const App: React.FC = () => {
             activeDept={activeDept}
           />
         </>
+      )}
+
+      {/* Mobile-Only Bottom Navigation */}
+      {user && (
+        <MobileBottomNav
+          activeTab={activeTab}
+          onSelectTab={(tab) => handleNavigate(tab)}
+          activeDept={activeDept}
+          currentUser={user}
+          unreadCount={unreadCount}
+        />
       )}
     </div>
   );
