@@ -754,6 +754,20 @@
   box-shadow: var(--shadow-sm);
 }
 
+[data-theme="dark"] .hero-actions .btn-secondary {
+  background: rgba(30, 41, 59, 0.75);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f8fafc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .hero-actions .btn-secondary:hover {
+  background: rgba(51, 65, 85, 0.85);
+  border-color: rgba(129, 140, 248, 0.5);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
 /* ─── 3D FROSTED GLASS DEPARTMENT ICON BADGE ──────────────── */
 .dept-badge-pill {
   display: inline-flex;
