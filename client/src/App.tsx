@@ -226,6 +226,18 @@ export const App: React.FC = () => {
 
   // 2. Fetch User Profile on Mount
   const fetchCurrentUser = useCallback(async () => {
+    // Check for direct auth token in URL query params (QR login support: ?token=... or ?auth_token=...)
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token') || urlParams.get('auth_token') || urlParams.get('jwt');
+      if (urlToken) {
+        api.setToken(urlToken);
+        // Clean token from address bar without page reload for security and clean display
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    }
+
     const token = api.getToken();
     // Instant short-circuit: if no token exists, immediately show login screen without network delay
     if (!token) {

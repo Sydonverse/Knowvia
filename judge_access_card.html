@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Knowvia — The Judge Instant Access Pass</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background: #090d16;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px;
+    }
+
+    .badge-card {
+      width: 100%;
+      max-width: 440px;
+      background: linear-gradient(180deg, #131b2e 0%, #0d1322 100%);
+      border: 1.5px solid rgba(99, 102, 241, 0.35);
+      border-radius: 24px;
+      padding: 36px 32px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px -10px rgba(99, 102, 241, 0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .badge-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #6366f1, #06b6d4, transparent);
+    }
+
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #818cf8;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .qr-container {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 20px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      border: 4px solid #f1f5f9;
+    }
+
+    .qr-image {
+      width: 240px;
+      height: 240px;
+      display: block;
+    }
+
+    .info-box {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 20px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      padding: 4px 0;
+    }
+
+    .info-label {
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .info-value {
+      color: #f1f5f9;
+      font-weight: 700;
+    }
+
+    .instructions {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    .direct-link {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 12px;
+      color: #38bdf8;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .direct-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="badge-card">
+    <div class="brand-pill">
+      <span>★ Knowvia Demo Access Pass</span>
+    </div>
+    <h1 class="title">The Judge</h1>
+    <p class="subtitle">Scan to authenticate directly into the platform without email or password</p>
+
+    <div class="qr-container">
+      <img src="data:image/png;base64,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" class="qr-image" alt="The Judge Login QR Code" />
+    </div>
+
+    <div class="info-box">
+      <div class="info-row">
+        <span class="info-label">Account Name:</span>
+        <span class="info-value">The Judge</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email:</span>
+        <span class="info-value">knowviademo@gmail.com</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Workspace:</span>
+        <span class="info-value">Cybersecurity</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Access Type:</span>
+        <span class="info-value" style="color: #34d399;">Direct Instant Pass</span>
+      </div>
+    </div>
+
+    <p class="instructions">
+      Open camera on mobile device or tablet and point at the QR code. You will be redirected straight to the Knowvia workspace dashboard.
+    </p>
+
+    <a href="https://knowvia-five.vercel.app/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3OTM3ZGUyMy01ZjljLTQzY2UtYjc5Yy05NmViNGYyZmMyZGYiLCJyb2xlIjoiSU5URVJOIiwiaWF0IjoxNzkxNTU1NzI2LCJleHAiOjE3OTQxNDc3MjZ9.8daCiuM0jlJDEUVjfXwzJ_Y6sLsi_Qmh9QRQJuOrAGw" target="_blank" class="direct-link">Click here to open login link directly</a>
+  </div>
+</body>
+</html>
